@@ -13,7 +13,7 @@
 #include "senpara.h"
 #include "Sen.h"
 
-#include "EKF2.h"
+#include "EKF.h"
 #include "runs.h"
 
 cv::Mat frame;
@@ -29,7 +29,9 @@ arma::mat P = arma::zeros(4, 4 * maxdetect);
 arma::mat xk1k1 = arma::zeros(4, 4);
 arma::mat hzk1k(2, 4);
 arma::mat sk1(2, 2);
-
+arma::mat t_id = arma::zeros(maxdetect, 1);
+arma::mat chxk1k1 = arma::zeros(4 * maxdetect, 4);
+arma::mat phxk1k1 = arma::zeros(4 * maxdetect, 4);
 
 
 int main(int argc, char *argv[]) {
@@ -73,17 +75,6 @@ int main(int argc, char *argv[]) {
 	std::default_random_engine genp;
 	std::poisson_distribution<> poiss(numfam);
 	for (int i = 0; i < nruns; i++) {
-		arma::mat p00 = arma::zeros(4, 4);
-
-		p00(0, 0) = 100;
-		p00(2, 2) = 100;
-		p00(1, 1) = 20;
-		p00(3, 3) = 20;
-		arma::mat R = arma::zeros(2, 2);
-		R(0, 0) = 0.05;
-		R(1, 1) = 1;
-
-
 
 		for (int k = 0; k < lent; k++) {
 			numfa = poiss(genp);

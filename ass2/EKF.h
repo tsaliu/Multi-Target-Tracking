@@ -5,15 +5,16 @@
 #include <chrono>
 #include <random>
 #include <math.h>
+#include "xyraconvert.h"
 
 
-class EKF2{
+class EKF{
 	model kfmodel;
 
 	double sigv = 0.2;
 
 public:
-	void kf(int, double, int, arma::mat, arma::mat &, arma::mat, 
+	void kf(int, double, int, arma::mat, arma::mat &, 
 				arma::mat, arma::mat &, arma::mat &, arma::mat &,
 				arma::mat &);
 	void ipda();

@@ -19,9 +19,6 @@
     <Filter Include="Header Files\Sen">
       <UniqueIdentifier>{8532c750-3930-42b8-8c7a-325fc5e1d082}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\EKF">
-      <UniqueIdentifier>{d93efecb-9e6b-4e9a-9716-094d7396f80e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\conv">
       <UniqueIdentifier>{87573b76-dc19-4465-a9cf-a0e0bdaf859f}</UniqueIdentifier>
     </Filter>
@@ -36,16 +33,13 @@
     <ClCompile Include="Sen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EKF.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="runs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EKF2.cpp">
+    <ClCompile Include="EKF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -71,12 +65,6 @@
     <ClInclude Include="senpara.h">
       <Filter>Header Files\Sen</Filter>
     </ClInclude>
-    <ClInclude Include="EKF.h">
-      <Filter>Header Files\EKF</Filter>
-    </ClInclude>
-    <ClInclude Include="ekfpara.h">
-      <Filter>Header Files\EKF</Filter>
-    </ClInclude>
     <ClInclude Include="runs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -89,7 +77,7 @@
     <ClInclude Include="xyraconvert.h">
       <Filter>Header Files\conv</Filter>
     </ClInclude>
-    <ClInclude Include="EKF2.h">
+    <ClInclude Include="EKF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

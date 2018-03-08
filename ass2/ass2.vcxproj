@@ -120,7 +120,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="EKF.cpp" />
-    <ClCompile Include="EKF2.cpp" />
     <ClCompile Include="GenTar.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
@@ -129,8 +128,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EKF.h" />
-    <ClInclude Include="EKF2.h" />
-    <ClInclude Include="ekfpara.h" />
     <ClInclude Include="GenTar.h" />
     <ClInclude Include="initpara.h" />
     <ClInclude Include="model.h" />
