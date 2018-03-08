@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\randseed">
+      <UniqueIdentifier>{1ae70989-d69b-4e91-ac8d-780fd16b58ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Sen">
+      <UniqueIdentifier>{8532c750-3930-42b8-8c7a-325fc5e1d082}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\EKF">
+      <UniqueIdentifier>{d93efecb-9e6b-4e9a-9716-094d7396f80e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\conv">
+      <UniqueIdentifier>{87573b76-dc19-4465-a9cf-a0e0bdaf859f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GenTar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EKF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EKF2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GenTar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="randseed.h">
+      <Filter>Header Files\randseed</Filter>
+    </ClInclude>
+    <ClInclude Include="randseed2.h">
+      <Filter>Header Files\randseed</Filter>
+    </ClInclude>
+    <ClInclude Include="randseed3.h">
+      <Filter>Header Files\randseed</Filter>
+    </ClInclude>
+    <ClInclude Include="initpara.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sen.h">
+      <Filter>Header Files\Sen</Filter>
+    </ClInclude>
+    <ClInclude Include="senpara.h">
+      <Filter>Header Files\Sen</Filter>
+    </ClInclude>
+    <ClInclude Include="EKF.h">
+      <Filter>Header Files\EKF</Filter>
+    </ClInclude>
+    <ClInclude Include="ekfpara.h">
+      <Filter>Header Files\EKF</Filter>
+    </ClInclude>
+    <ClInclude Include="runs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xyraconv.h">
+      <Filter>Header Files\conv</Filter>
+    </ClInclude>
+    <ClInclude Include="xyraconvert.h">
+      <Filter>Header Files\conv</Filter>
+    </ClInclude>
+    <ClInclude Include="EKF2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
