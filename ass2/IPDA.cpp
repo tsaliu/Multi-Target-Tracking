@@ -95,7 +95,7 @@ void IPDA::ipda(arma::mat meas_data,
 	likeihood.resize(find_id_size, current_meas_count);
 	beta.resize(find_id_size, current_meas_count);
 	curr_meas.resize(current_meas_count * 2, 4);
-	//std::cout << "like  " << likeihood << std::endl;
+	std::cout << "like  " << likeihood << std::endl;
 	//std::cout <<"dk "<< dk << std::endl;
 	
 	//track quality, beta prob

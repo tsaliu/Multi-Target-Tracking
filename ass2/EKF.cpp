@@ -8,14 +8,14 @@
 void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, arma::mat &P,
 	arma::mat &phxk1k1, arma::mat &chxk1k1, arma::mat &hzk1k, arma::mat &sk1,
 	arma::mat &t_id, double lambda, double pd,
-	arma::mat &q) {
+	arma::mat &q, arma::mat &out_save) {
 	
 	ipda.getpara(lambda, pd);
 	//arma::mat asso_data;
 
 	arma::mat p00 = arma::zeros(4, 4);
-	int init_pos_var = 100;
-	int init_vel_var = 20;
+	int init_pos_var = 50;
+	int init_vel_var = 10;
 	p00 << init_pos_var << 0 << 0 << 0 << arma::endr
 		<< 0 << init_vel_var << 0 << 0 << arma::endr
 		<< 0 << 0 << init_pos_var << 0 << arma::endr
@@ -61,10 +61,13 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 				ra2xy2(cmeas_tmp, cstate_tmp, radi, sigv);
 				chxk1k1((i - 1) * 4 + 0, 0) = cstate_tmp(0, 0);
 				chxk1k1((i - 1) * 4 + 2, 2) = cstate_tmp(0, 1);
+				
 				P(arma::span((i - 1) * 4, (i - 1) * 4 + 3), arma::span(0, 3)) = p00;
+				
 				hzk1k((i - 1) * 2 + 0, 0) = (*cita);
 				hzk1k((i - 1) * 2 + 1, 2) = (*citr);
 
+				
 
 				sk1_tmp << init_a_var + init_pos_var << 0 << arma::endr
 					<< 0 << init_r_var + init_pos_var << arma::endr;
@@ -90,7 +93,7 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 	else {
 		phxk1k1.fill(0);
 		chxk1k1.fill(0);
-
+		arma::mat save_com = arma::zeros(0, 7);
 		//if (k / st - 1 == start_all_frame_num) {
 			//std::cout << meas_data << std::endl;
 			ipda.ipda(meas_data, cita, hz_store, id_store, sk_store, k, st, q, asso_data, radi, sigv, P);
@@ -319,6 +322,7 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 				genu.seed(std::chrono::system_clock::now().time_since_epoch().count());
 				std::uniform_int_distribution<int> distu(0, 255);
 
+				//add comfirmed tracks
 				arma::mat com_data;
 				if (asso_data(i, 1) >= com_th) {
 					arma::mat com_now_id(1, 1);
@@ -342,7 +346,7 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 
 					
 				}
-				
+				//if comfirmed
 				arma::uvec find_if_com = arma::find(com_id == asso_data(i, 0));
 				if (!find_if_com.is_empty()) {
 					cv::Point com_track(hxk1k1(0, 0), hxk1k1(2, 2));
@@ -352,8 +356,18 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 					//cv::line(frame, com_c, com_track, cv::Scalar(com_color(find_if_com(0), 0), com_color(find_if_com(0), 1), com_color(find_if_com(0), 2)), 2);
 					//while (!GetAsyncKeyState(VK_SPACE)) {}
 					cv::line(frame, com_p, com_c, cv::Scalar(com_color(find_if_com(0), 0), com_color(find_if_com(0), 1), com_color(find_if_com(0), 2)), 2);
+					
+					arma::mat save_tmp(1, 7);
+					save_tmp(0, 0) = k;
+					save_tmp(0, arma::span(1, 6)) = asso_data.row(i);
+					save_com.insert_rows(save_com.n_rows, save_tmp);
+				
+					//std::cout << "save " << save_com << std::endl;
+					//while (!GetAsyncKeyState(VK_SPACE)) {}
+				
+				
 				}
-
+				//if comfirmed dropped
 				if (asso_data(i, 1) <= term_th) {
 					arma::uvec find_term_com = arma::find(com_id == asso_data(i, 0));
 					if (!find_term_com.is_empty()) {
@@ -376,10 +390,12 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 			hz_store = hzk1k;
 			sk_store = sk1;
 		//}
-		
+			out_save = save_com;
 		
 	}
-	
+	//cv::imshow("Output", frame);
+	//cv::waitKey(1);
+	//while (!GetAsyncKeyState(VK_SPACE)) {}
 
 }
 

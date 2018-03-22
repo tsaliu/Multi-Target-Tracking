@@ -73,13 +73,18 @@ int main(int argc, char *argv[]) {
 	EKF ekf;
 
 	model kfmodel;
-	int nruns = 1;
+	int nruns = 10;
 
 	runs result;
 	std::default_random_engine genp;
 	std::poisson_distribution<> poiss(numfam);
+	arma::mat run_tar1 = arma::zeros(endt - initt - 1, 7);
+	arma::mat run_tar2 = arma::zeros(endt2 - initt2, 7);
 	for (int i = 0; i < nruns; i++) {
-
+		arma::mat save_com_all;
+		arma::mat tar1;
+		arma::mat tar2;
+		std::cout << "run " << i + 1 << std::endl;
 		for (int k = 0; k < lent; k++) {
 			numfa = poiss(genp);
 			if (numfa == 0) {
@@ -116,16 +121,61 @@ int main(int argc, char *argv[]) {
 			//std::cout << meas_at << std::endl;
 			//std::cout << meas_data(meas_size - 1, (k / st) * 2) << std::endl;
 			
+			arma::mat save_com;
 			//may need to clear hzk1k, sk1
-			ekf.kf(frame, k, st, radius, meas_data, P, phxk1k1, chxk1k1, hzk1k, sk1, t_id, fad, pd, q);
-			//std::cout << chxk1k1(arma::span(0,4*maxdetect-1),arma::span(0,3)) << std::endl;
-			//phxk1k1 = chxk1k1;
-			//chxk1k1.fill(0);
+			ekf.kf(frame, k, st, radius, meas_data, P, phxk1k1, chxk1k1, hzk1k, sk1, t_id, fad, pd, q, save_com);
+			
+
+			
+			if (k >= initt && k < initt2) {
+				arma::mat sum = arma::sum(save_com) / save_com.n_rows;
+				std::cout << "sum " << sum << std::endl;
+				if (!sum.is_empty()) {
+					tar1.insert_rows(tar1.n_rows, sum);
+				}
+				else {
+					std::cout << "sum empt" << std::endl;
+				}
+				
+			}
+			else if (k>=initt2 && k< endt) {
+				int num1 = 0;
+				int num2 = 0;
+				arma::mat sum1 = arma::zeros(1, 7);
+				arma::mat sum2 = arma::zeros(1, 7);
+				for (int ii = 0; ii < save_com.n_rows; ii++) {
+					double dis1 = sqrt(pow((truth(k1, 0) - save_com(ii, 5)), 2) + pow((truth(k1, 1) - save_com(ii, 6)), 2));
+					double dis2 = sqrt(pow((truth2(k2, 0) - save_com(ii, 5)), 2) + pow((truth2(k2, 1) - save_com(ii, 6)), 2));
+					if (dis1 < dis2) {
+						num1++;
+						sum1 = sum1 + save_com.row(ii);
+					}
+					else if (dis1 > dis2) {
+						num2++;
+						sum2 = sum2 + save_com.row(ii);
+					}
+				}
+				sum1 = sum1 / num1;
+				sum2 = sum2 / num2;
+				tar1.insert_rows(tar1.n_rows, sum1);
+				tar2.insert_rows(tar2.n_rows, sum2);
+			}
+			else if (k >= endt && k <= endt2) {
+				arma::mat sum = arma::sum(save_com) / save_com.n_rows;
+				//std::cout << "sum " << sum << std::endl;
+				tar2.insert_rows(tar2.n_rows, sum);
+			}
+			
+			//save_com_all.insert_rows(save_com_all.n_rows, save_com);
+			//std::cout << "save " << save_com_all << std::endl;
+
+			
 			
 
 
 
 		}
+		P.resize(4 * maxdetect, 4);
 		P.fill(0);
 		phxk1k1.fill(0);
 		chxk1k1.fill(0);
@@ -133,12 +183,21 @@ int main(int argc, char *argv[]) {
 		sk1.fill(0);
 		t_id.fill(0);
 		q.fill(0);
-		
+		tar1.elem(arma::find_nonfinite(tar1)).zeros();
+		tar2.elem(arma::find_nonfinite(tar2)).zeros();
+		run_tar1 = (run_tar1 + tar1) / (i + 1);
+		run_tar2 = (run_tar2 + tar2) / (i + 1);
+		//std::cout << "tar1 " << tar1 << std::endl;
+		//std::cout << "tar2 " << tar2 << std::endl;
 	}
+
 	//result.graphavg(graph, avg_xy, len, st);
 	cv::imshow("Output", frame);
 	cv::waitKey(1);
 
+
+	std::cout << run_tar1 << std::endl;
+	std::cout << run_tar2 << std::endl;
 	//meas_data.save("meas.txt", arma::arma_ascii);
 	std::cout << "Done" << std::endl;
 	while (!GetAsyncKeyState(VK_ESCAPE)) {}
