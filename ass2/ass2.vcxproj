@@ -121,6 +121,7 @@
   <ItemGroup>
     <ClCompile Include="EKF.cpp" />
     <ClCompile Include="GenTar.cpp" />
+    <ClCompile Include="IPDA.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="runs.cpp" />
@@ -128,8 +129,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EKF.h" />
+    <ClInclude Include="calcdis.h" />
     <ClInclude Include="GenTar.h" />
+    <ClInclude Include="chi2inv.h" />
     <ClInclude Include="initpara.h" />
+    <ClInclude Include="IPDA.h" />
+    <ClInclude Include="likelihood.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="randseed.h" />
     <ClInclude Include="randseed2.h" />
@@ -138,6 +143,7 @@
     <ClInclude Include="Sen.h" />
     <ClInclude Include="senpara.h" />
     <ClInclude Include="xyraconv.h" />
+    <ClInclude Include="xyraconv2.h" />
     <ClInclude Include="xyraconvert.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,6 +1,8 @@
 #pragma once
 #include <armadillo>
-//#include "xyraconvert.h"
+
+
+
 
 class model{
 	double init_x, init_y;
@@ -12,6 +14,8 @@ public:
 	~model();
 
 	void init_pos(double, double);
-	void getdata(int, int, int, int, double, arma::mat &, arma::mat &, double, double, double &, double &, double &, double &);
+	void getdata(int, int, int, double, arma::mat &, arma::mat &,
+		double, double, double, double,
+		double &, double &, double &, double &);
 };
 

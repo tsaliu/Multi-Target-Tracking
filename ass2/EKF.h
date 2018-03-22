@@ -1,22 +1,42 @@
 #pragma once
 #include <armadillo>
 #include <opencv2\opencv.hpp>
-#include "model.h"
 #include <chrono>
 #include <random>
 #include <math.h>
-#include "xyraconvert.h"
+#include <cmath>
+
+#include "model.h"
+#include "IPDA.h"
 
 
 class EKF{
 	model kfmodel;
+	IPDA ipda;
 
-	double sigv = 0.2;
+	int maxdetect = 50;
+	double com_th = 0.9;
+	double term_th = 0.05;
+	double init_quality = 0.2;
+
+	int start_all_frame_num;
+	double sigv = 5;
+
+	arma::mat hz_store;
+	arma::mat id_store;
+	arma::mat sk_store;
+
+	int com_size;
+	arma::mat com_id;
+	arma::mat com_color;
+
+	arma::mat asso_data;
 
 public:
-	void kf(int, double, int, arma::mat, arma::mat &, 
-				arma::mat, arma::mat &, arma::mat &, arma::mat &,
+	void kf(cv::Mat &,int, double, int, arma::mat, arma::mat &, 
+				arma::mat &, arma::mat &, arma::mat &, arma::mat &,
+				arma::mat &, double, double,
 				arma::mat &);
-	void ipda();
+	//void ipda();
 };
 

@@ -22,6 +22,12 @@
     <Filter Include="Header Files\conv">
       <UniqueIdentifier>{87573b76-dc19-4465-a9cf-a0e0bdaf859f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\chi2inv">
+      <UniqueIdentifier>{8477a709-94d1-41b6-ba5d-cb9678c206b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ipda">
+      <UniqueIdentifier>{a34ca820-1512-44f2-b673-458b5d3b6c06}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -40,6 +46,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EKF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IPDA.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -79,6 +88,21 @@
     </ClInclude>
     <ClInclude Include="EKF.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chi2inv.h">
+      <Filter>Header Files\chi2inv</Filter>
+    </ClInclude>
+    <ClInclude Include="IPDA.h">
+      <Filter>Header Files\ipda</Filter>
+    </ClInclude>
+    <ClInclude Include="calcdis.h">
+      <Filter>Header Files\ipda</Filter>
+    </ClInclude>
+    <ClInclude Include="likelihood.h">
+      <Filter>Header Files\ipda</Filter>
+    </ClInclude>
+    <ClInclude Include="xyraconv2.h">
+      <Filter>Header Files\conv</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

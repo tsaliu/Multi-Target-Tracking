@@ -25,14 +25,16 @@ arma::mat truthxy = arma::zeros(len, 2);
 arma::mat truth2 = arma::zeros(len2, 2);
 arma::mat truthxy2 = arma::zeros(len2, 2);
 
-arma::mat P = arma::zeros(4, 4 * maxdetect);
-arma::mat xk1k1 = arma::zeros(4, 4);
-arma::mat hzk1k(2, 4);
-arma::mat sk1(2, 2);
-arma::mat t_id = arma::zeros(maxdetect, 1);
+arma::mat meas_data = arma::zeros(maxdetect, lent * 2);
+
+arma::mat P = arma::zeros(4 * maxdetect, 4);
+//arma::mat xk1k1 = arma::zeros(4, 4);
+arma::mat hzk1k = arma::zeros(2 * maxdetect, 4);
+arma::mat sk1 = arma::zeros(2 * maxdetect, 2);
+arma::mat t_id = arma::zeros(maxdetect, lent);
 arma::mat chxk1k1 = arma::zeros(4 * maxdetect, 4);
 arma::mat phxk1k1 = arma::zeros(4 * maxdetect, 4);
-
+arma::mat q = arma::zeros(maxdetect, lent); //quality, need change size for all length
 
 int main(int argc, char *argv[]) {
 	srand(time(NULL));
@@ -68,6 +70,8 @@ int main(int argc, char *argv[]) {
 
 	cv::Mat graph;
 
+	EKF ekf;
+
 	model kfmodel;
 	int nruns = 1;
 
@@ -84,7 +88,7 @@ int main(int argc, char *argv[]) {
 			int k1 = k - initt;
 			int k2 = k - initt2;
 
-			arma::mat meas_data = arma::zeros(numfa * 3, lent * 2);
+			
 
 			if (k >= initt && k < endt) {
 				target.graph(frame, target_data, k1);
@@ -108,44 +112,34 @@ int main(int argc, char *argv[]) {
 			arma::uvec meas_at = arma::find(meas_data(arma::span(0, numfa * 3 - 1), (k / st) * 2 + 0) != 0);
 			int meas_size = arma::max(meas_at) + 1;
 
-			std::cout << meas_size << std::endl;
-			std::cout << meas_at << std::endl;
-			std::cout << meas_data(meas_size - 1, (k / st) * 2) << std::endl;
-			if (k == 0) {
-				
-			}
-
-
-
-
-
-			/*
-			EKF ekf1, ekf2;
-			if (k >= initt && k < endt) {
-				ekf1.init(k1, truth, radius);
-				ekf1.start(k1, st, radius, p00, R, P, xk1k1, hzk1k, sk1);
-				p00 = P;
-				ekf1.asso(k1+initt, st, meas_data, numfa, hzk1k, sk1, radius);
-				ekf1.graph_est(frame, k1, st);
-			}
-			if (k >= initt2 && k < endt2) {
-				ekf2.init(k2, truth2, radius);
-				ekf2.start(k2, st, radius, p002, R2, P2, xk1k12, hzk1k2, sk12);
-				p002 = P2;
-				ekf2.asso(k2+initt2, st, meas_data, numfa, hzk1k2, sk12, radius);
-				ekf2.graph_est(frame, k2, st);
-			}
+			//std::cout << meas_size << std::endl;
+			//std::cout << meas_at << std::endl;
+			//std::cout << meas_data(meas_size - 1, (k / st) * 2) << std::endl;
 			
-			*/
+			//may need to clear hzk1k, sk1
+			ekf.kf(frame, k, st, radius, meas_data, P, phxk1k1, chxk1k1, hzk1k, sk1, t_id, fad, pd, q);
+			//std::cout << chxk1k1(arma::span(0,4*maxdetect-1),arma::span(0,3)) << std::endl;
+			//phxk1k1 = chxk1k1;
+			//chxk1k1.fill(0);
 			
-			//std::cout << xk1k12 << std::endl;
+
+
+
 		}
+		P.fill(0);
+		phxk1k1.fill(0);
+		chxk1k1.fill(0);
+		hzk1k.fill(0);
+		sk1.fill(0);
+		t_id.fill(0);
+		q.fill(0);
 		
 	}
 	//result.graphavg(graph, avg_xy, len, st);
 	cv::imshow("Output", frame);
 	cv::waitKey(1);
 
+	//meas_data.save("meas.txt", arma::arma_ascii);
 	std::cout << "Done" << std::endl;
 	while (!GetAsyncKeyState(VK_ESCAPE)) {}
 }
