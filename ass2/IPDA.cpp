@@ -95,7 +95,7 @@ void IPDA::ipda(arma::mat meas_data,
 	likeihood.resize(find_id_size, current_meas_count);
 	beta.resize(find_id_size, current_meas_count);
 	curr_meas.resize(current_meas_count * 2, 4);
-	std::cout << "like  " << likeihood << std::endl;
+	//std::cout << "like  " << likeihood << std::endl;
 	//std::cout <<"dk "<< dk << std::endl;
 	
 	//track quality, beta prob
@@ -108,6 +108,7 @@ void IPDA::ipda(arma::mat meas_data,
 		else {
 			for (int ii = 0; ii < current_meas_count; ii++) {
 				beta(i, ii) = (pd*pg / lambda * likeihood(i, ii)) / (1 - dk(i, 0));//dkchange
+				//beta(i, ii) = abs(beta(i, ii));
 			}
 		}
 		
@@ -128,6 +129,9 @@ void IPDA::ipda(arma::mat meas_data,
 		else {
 			q(i, k / st) = (1 - dk(i, 0))*(q(arma::max(find_hist))) / (1 - dk(i, 0) * q(arma::max(find_hist))); //need to change to k/st
 		}
+		if (q(i, k / st) >= 0.99) {
+			q(i, k / st) = q(i, k / st)*ps;
+		}
 		arma::uvec find_qz = arma::find(q.col(k / st) == 0);
 		for (int j = 0; j < find_qz.n_rows; j++) {
 			//q(find_qz(j), k / st) = init_quality;
@@ -138,7 +142,7 @@ void IPDA::ipda(arma::mat meas_data,
 		//std::cout <<"hist check " <<hist_check << std::endl;
 	}
 	//std::cout <<"q "<<q.col((k-1)/st)<< q.col(k/st) << std::endl;
-	//std::cout << beta << std::endl;
+	std::cout <<"beta " << beta << std::endl;
 	
 	//std::cout << "currmeascout " << current_meas_count << std::endl;
 	
@@ -337,10 +341,18 @@ void IPDA::ipda(arma::mat meas_data,
 	}
 	*/
 	//for (int iiii = 0; iiii < asso_data.n_rows; iiii++) {
+		int at_prow = 1000;
 		arma::uvec find_unasso_track = arma::find(asso_data(arma::span(0, asso_data.n_rows - 1), arma::span(0, 5)) == 0);
 		for (int iiiii = 0; iiiii < find_unasso_track.n_rows; iiiii++) {
-			if (find_unasso_track(iiiii) >= 2 * find_unasso_track.n_rows) {
+			int at_row = find_unasso_track(iiiii) % asso_data.n_rows;
+			
+			if (find_unasso_track(iiiii) >= 2 * asso_data.n_rows) {
 				asso_data(find_unasso_track(iiiii)) = asso_data(find_unasso_track(iiiii) - 2 * asso_data.n_rows);
+				
+				if (at_row != at_prow) {
+					asso_data(at_row, 1) = asso_data(at_row, 1)*ps;
+					at_prow = at_row;
+				}
 			}
 		}
 	//}

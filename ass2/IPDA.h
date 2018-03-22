@@ -6,6 +6,7 @@
 class IPDA{
 	int maxdetect = 50;
 	double pg = 0.95;
+	double ps = 0.9;
 	int deg = 2;
 	double gamma, lambda, pd;
 	double init_quality = 0.2;

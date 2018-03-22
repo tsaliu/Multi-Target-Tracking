@@ -14,8 +14,8 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 	//arma::mat asso_data;
 
 	arma::mat p00 = arma::zeros(4, 4);
-	int init_pos_var = 200;
-	int init_vel_var = 50;
+	int init_pos_var = 100;
+	int init_vel_var = 20;
 	p00 << init_pos_var << 0 << 0 << 0 << arma::endr
 		<< 0 << init_vel_var << 0 << 0 << arma::endr
 		<< 0 << 0 << init_pos_var << 0 << arma::endr
@@ -223,6 +223,7 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 				xx(1, 1) = dx;
 				xx(3, 3) = dy;
 
+				x00 = xx;
 				xx = xx + w;
 
 				zk1_tmp(0, 0) = ca;
@@ -345,10 +346,12 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 				arma::uvec find_if_com = arma::find(com_id == asso_data(i, 0));
 				if (!find_if_com.is_empty()) {
 					cv::Point com_track(hxk1k1(0, 0), hxk1k1(2, 2));
+					cv::Point com_c(cx, cy);
+					cv::Point com_p(px, py);
 					//cv::line(frame, com_track, com_track, cv::Scalar(0, 255, 0), 2);
-					cv::line(frame, com_track, com_track, cv::Scalar(com_color(find_if_com(0), 0), com_color(find_if_com(0), 1), com_color(find_if_com(0), 2)), 5);
+					//cv::line(frame, com_c, com_track, cv::Scalar(com_color(find_if_com(0), 0), com_color(find_if_com(0), 1), com_color(find_if_com(0), 2)), 2);
 					//while (!GetAsyncKeyState(VK_SPACE)) {}
-
+					cv::line(frame, com_p, com_c, cv::Scalar(com_color(find_if_com(0), 0), com_color(find_if_com(0), 1), com_color(find_if_com(0), 2)), 2);
 				}
 
 				if (asso_data(i, 1) <= term_th) {
