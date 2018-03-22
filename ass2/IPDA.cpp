@@ -158,6 +158,7 @@ void IPDA::ipda(arma::mat meas_data,
 	P_tmp.resize(4 * find_id_size, 4);
 	for (int iii = 0; iii < find_id_size; iii++) {
 		arma::mat weight_sum = arma::zeros(1, 2);
+		arma::mat weight_ar = arma::zeros(1, 2);
 		arma::mat p_tot = P;
 		if (current_meas_count != 0) {
 			for (int iiii = 0; iiii < current_meas_count; iiii++) {
@@ -172,16 +173,17 @@ void IPDA::ipda(arma::mat meas_data,
 				//std::cout << curr_st_tmp << std::endl;
 				weight_sum(0, 0) = weight_sum(0, 0) + beta_tmp(iii, iiii)*curr_st_tmp(0, 0);
 				weight_sum(0, 1) = weight_sum(0, 1) + beta_tmp(iii, iiii)*curr_st_tmp(0, 1);
-			
+				weight_ar(0, 0) = weight_ar(0, 0) + beta_tmp(iii, iiii)*curr_meas_tmp(0, 0);
+				weight_ar(0, 1) = weight_ar(0, 1) + beta_tmp(iii, iiii)*curr_meas_tmp(0, 1);
 				
 			}
 			//std::cout <<"sum "<< weight_sum << std::endl;
-			arma::mat weight_ar = arma::zeros(1, 2);
+			//arma::mat weight_ar = arma::zeros(1, 2);
 
 			//weight_sum(0, 0) = weight_sum(0, 0) + 500;
 			//weight_sum(0, 1) = -weight_sum(0, 1) + 500;
 
-			xy2ra4(weight_sum, weight_ar, radi, sigv);
+			//xy2ra4(weight_sum, weight_ar, radi, sigv);
 			//asso points
 			asso_data(iii, 4) = weight_ar(0, 0);
 			asso_data(iii, 5) = weight_ar(0, 1);
@@ -197,17 +199,25 @@ void IPDA::ipda(arma::mat meas_data,
 				arma::mat hx = arma::zeros(4, 4);
 				arma::mat pxi = arma::zeros(4, 4);
 
+				/*
 				hxi(0, 0) = curr_st_tmp(0, 0);
 				hxi(2, 2) = curr_st_tmp(0, 1);
 				hx(0, 0) = weight_sum(0, 0);
 				hx(2, 2) = weight_sum(0, 1);
+				*/
+				hxi(0, 0) = curr_meas_tmp(0, 0);
+				hxi(2, 2) = curr_meas_tmp(0, 1);
+				hx(0, 0) = weight_ar(0, 0);
+				hx(2, 2) = weight_ar(0, 1);
 
+				//arma::mat p_mid = P_tmp(arma::span(iii * 4, iii * 4 + 3), arma::span(0, 3)) + (hxi - hx)*(hxi - hx).t();
+				//p_tot(arma::span(iii * 4, iii * 4 + 3), arma::span(0, 3)) = p_tot(arma::span(iii * 4, iii * 4 + 3), arma::span(0, 3)) + beta_tmp(iii, iiii)*p_mid;
 				arma::mat p_mid = P_tmp(arma::span(iii * 4, iii * 4 + 3), arma::span(0, 3)) + (hxi - hx)*(hxi - hx).t();
 				p_tot(arma::span(iii * 4, iii * 4 + 3), arma::span(0, 3)) = p_tot(arma::span(iii * 4, iii * 4 + 3), arma::span(0, 3)) + beta_tmp(iii, iiii)*p_mid;
 			}
 			//std::cout << "p pp" << P(arma::span(iii * 4, iii * 4 + 3), arma::span(0, 3)) << std::endl;
 			//std::cout << "p tot" << p_tot(arma::span(iii * 4, iii * 4 + 3), arma::span(0, 3)) << std::endl;
-			//P = p_tot;
+			P = p_tot;
 
 		}
 		else {
@@ -221,18 +231,8 @@ void IPDA::ipda(arma::mat meas_data,
 		//past track point
 		asso_data(iii, 2) = hzk1k(iii * 2, 0);
 		asso_data(iii, 3) = hzk1k(iii * 2 + 1, 2);
-
-		//for update p
-		//arma::mat p_tmp = P;
-		//p_tmp.resize(4 * find_id_size, 4);
-		//arma::mat p_tot = p_tmp;
-		for (int iiii = 0; iiii < current_meas_count; iiii++) {
-			arma::mat curr_meas_tmp = arma::zeros(1, 2);
-			arma::mat curr_st_tmp = arma::zeros(1, 2);
-			curr_meas_tmp << curr_meas(iiii * 2, 0) << curr_meas(iiii * 2 + 1, 2) << arma::endr;
-			ra2xy4(curr_meas_tmp, curr_st_tmp, radi, sigv);
-
-		}
+		
+		
 
 
 		/*
@@ -266,16 +266,7 @@ void IPDA::ipda(arma::mat meas_data,
 		asso_data(iii, 3) = hzk1k(iii * 2 + 1, 2);
 		*/
 	}
-	//unasso tracks
-	/*
-	arma::uvec find_unasso_tmp = arma::find(asso_data(arma::span(0, find_id_size - 1), arma::span(0, 5)) == 0);
-	arma::uvec unasso_at_col = find_unasso_tmp / find_id_size;
-	arma::uvec unasso_at_row = find_unasso_tmp - (find_id_size * unasso_at_col);
-	
-	//std::cout << asso_data << std::endl;
-	asso_data(unasso_at_row, unasso_at_col) = asso_data(unasso_at_row, unasso_at_col - 2);
-	//std::cout << "unasso track\n" << unasso_at_row << std::endl;
-	*/
+
 	
 
 	//unasso meas
@@ -304,27 +295,6 @@ void IPDA::ipda(arma::mat meas_data,
 	}
 
 
-	/*
-	arma::uvec unasso_meas_size_vec = arma::find(unasso_at != 0);
-	//std::cout << unasso_meas_size_vec << std::endl;
-	for (int i = 0; i < unasso_meas_size_vec.n_rows; i++) {
-		unasso_at(i, 0) = unasso_at(unasso_meas_size_vec(i));
-	}
-	unasso_at.resize(unasso_meas_size_vec.n_rows, 1);
-	int unasso_meas_size = unasso_meas_size_vec.n_rows;
-	std::cout << unasso_at << std::endl;
-
-	asso_data.resize(find_id_size + unasso_meas_size, 6);
-	for (int i = 0; i < unasso_meas_size_vec.n_rows; i++) {
-		asso_data(find_id_size + i, 0) = t_id(t_id.index_max()) + i + 1;
-		asso_data(find_id_size + i, 2) = curr_meas(unasso_at(i) * 2, 0);
-		asso_data(find_id_size + i, 3) = curr_meas(unasso_at(i) * 2 + 1, 2);
-		asso_data(find_id_size + i, 4) = curr_meas(unasso_at(i) * 2, 0);
-		asso_data(find_id_size + i, 5) = curr_meas(unasso_at(i) * 2 + 1, 2);
-	}
-	//std::cout << asso_data << std::endl;
-	//std::cout << curr_meas << std::endl;
-	*/
 
 	std::cout << asso_data << std::endl;
 	int del_track_size = find_id_size;
@@ -366,6 +336,14 @@ void IPDA::ipda(arma::mat meas_data,
 		P = p_re;
 	}
 	*/
+	//for (int iiii = 0; iiii < asso_data.n_rows; iiii++) {
+		arma::uvec find_unasso_track = arma::find(asso_data(arma::span(0, asso_data.n_rows - 1), arma::span(0, 5)) == 0);
+		for (int iiiii = 0; iiiii < find_unasso_track.n_rows; iiiii++) {
+			if (find_unasso_track(iiiii) >= 2 * find_unasso_track.n_rows) {
+				asso_data(find_unasso_track(iiiii)) = asso_data(find_unasso_track(iiiii) - 2 * asso_data.n_rows);
+			}
+		}
+	//}
 
 	data_output = asso_data;
 	std::cout << asso_data << std::endl;
