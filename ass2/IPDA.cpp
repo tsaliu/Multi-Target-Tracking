@@ -203,16 +203,16 @@ void IPDA::ipda(arma::mat meas_data,
 				arma::mat hx = arma::zeros(4, 4);
 				arma::mat pxi = arma::zeros(4, 4);
 
-				/*
+				
 				hxi(0, 0) = curr_st_tmp(0, 0);
 				hxi(2, 2) = curr_st_tmp(0, 1);
 				hx(0, 0) = weight_sum(0, 0);
 				hx(2, 2) = weight_sum(0, 1);
-				*/
-				hxi(0, 0) = curr_meas_tmp(0, 0);
+				
+				/*hxi(0, 0) = curr_meas_tmp(0, 0);
 				hxi(2, 2) = curr_meas_tmp(0, 1);
 				hx(0, 0) = weight_ar(0, 0);
-				hx(2, 2) = weight_ar(0, 1);
+				hx(2, 2) = weight_ar(0, 1);*/
 
 				//arma::mat p_mid = P_tmp(arma::span(iii * 4, iii * 4 + 3), arma::span(0, 3)) + (hxi - hx)*(hxi - hx).t();
 				//p_tot(arma::span(iii * 4, iii * 4 + 3), arma::span(0, 3)) = p_tot(arma::span(iii * 4, iii * 4 + 3), arma::span(0, 3)) + beta_tmp(iii, iiii)*p_mid;

@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 	EKF ekf;
 
 	model kfmodel;
-	int nruns = 10;
+	int nruns = 1;
 
 	runs result;
 	std::default_random_engine genp;

@@ -69,8 +69,8 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 
 				
 
-				sk1_tmp << init_a_var + init_pos_var << 0 << arma::endr
-					<< 0 << init_r_var + init_pos_var << arma::endr;
+				sk1_tmp << init_a_var  << 0 << arma::endr
+					<< 0 << init_r_var  << arma::endr;
 
 				sk1(arma::span((i - 1) * 2, (i - 1) * 2 + 1), arma::span(0, 1)) = sk1_tmp;
 			
@@ -279,22 +279,31 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 				pk1k = F * Pkk*F.t() + Q;
 
 				arma::mat sk1_tmp = arma::zeros(2, 2);
-				//arma::mat pk1k_xy_tmp(1, 2);
-				//arma::mat pk1k_ar_tmp(1, 2);
-				//pk1k_xy_tmp << pk1k(0, 0) << pk1k(2, 2) << arma::endr;
-				//xy2ra2(pk1k_xy_tmp, pk1k_ar_tmp, radi, sigv);
-				//arma::mat pk1k_tmp = arma::zeros(4, 4);
-				//pk1k_tmp = pk1k;
-				//pk1k_tmp(0, 0) = pk1k_ar_tmp(0, 0);
-				//pk1k_tmp(2, 2) = pk1k_ar_tmp(0, 1);
-				sk1_tmp = R + H * pk1k*H.t();
+				arma::mat pk1k_xy_tmp(1, 2);
+				arma::mat pk1k_ar_tmp(1, 2);
+				pk1k_xy_tmp << pk1k(0, 0) << pk1k(2, 2) << arma::endr;
+				xy2ra2(pk1k_xy_tmp, pk1k_ar_tmp, radi, sigv);
+				arma::mat pk1k_tmp = arma::zeros(4, 4);
+				pk1k_tmp = pk1k;
+				pk1k_tmp(0, 0) = pk1k_ar_tmp(0, 0);
+				pk1k_tmp(2, 2) = pk1k_ar_tmp(0, 1);
+				sk1_tmp = R + H * pk1k_tmp*H.t();
 				//std::cout << Hx << std::endl;
+				sk1_tmp = abs(sk1_tmp);
 
 				arma::mat wk1 = arma::zeros(4, 2);
-				wk1 = pk1k * H.t()*arma::inv(sk1_tmp);
+				arma::mat convxy(1, 2);
+				arma::mat convar(1, 2);
+				convar << sk1_tmp(0, 0) << sk1_tmp(1, 1) << arma::endr;
+				ra2xy2(convar, convxy, radi, sigv);
+				arma::mat sk1_tmp_tmp = arma::zeros(2, 2);
+				sk1_tmp_tmp(0, 0) = convxy(0, 0);
+				sk1_tmp_tmp(1, 1) = convxy(0, 1);
+				std::cout << "sk1 tmp tmp" << sk1_tmp << std::endl;
+				wk1 = pk1k * H.t()*arma::inv(sk1_tmp_tmp);
 
-				pk1k1 = pk1k - wk1 * sk1_tmp*wk1.t();
-
+				pk1k1 = pk1k - wk1 * sk1_tmp_tmp*wk1.t();
+				std::cout << "pk1k1   " << pk1k1 << std::endl;
 				arma::mat hxk1k1 = arma::zeros(4, 4);
 				hxk1k1 = hxk1k + wk1 * vk1;
 
