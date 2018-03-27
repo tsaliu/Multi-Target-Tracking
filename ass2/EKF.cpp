@@ -14,8 +14,8 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 	//arma::mat asso_data;
 
 	arma::mat p00 = arma::zeros(4, 4);
-	int init_pos_var = 50;
-	int init_vel_var = 10;
+	int init_pos_var = 100;
+	int init_vel_var = 50;
 	p00 << init_pos_var << 0 << 0 << 0 << arma::endr
 		<< 0 << init_vel_var << 0 << 0 << arma::endr
 		<< 0 << 0 << init_pos_var << 0 << arma::endr
@@ -69,8 +69,8 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 
 				
 
-				sk1_tmp << init_a_var  << 0 << arma::endr
-					<< 0 << init_r_var  << arma::endr;
+				sk1_tmp << init_a_var*10   << 0 << arma::endr
+					<< 0 << init_r_var*10  << arma::endr;
 
 				sk1(arma::span((i - 1) * 2, (i - 1) * 2 + 1), arma::span(0, 1)) = sk1_tmp;
 			
@@ -198,14 +198,21 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 				for (int i = 0; i<w.n_rows; i++) {
 					for (int j = 0; j<w.n_cols; j++) {
 						arma::mat rn = arma::randn(4, 4);
-						std::normal_distribution<double> distw(0, sqrt(Q(i, j)));
-						//std::cout << rn << std::endl;
-						//w(i, j) = rn(i, j)*sqrt(Q(i, j));
-						w(i, j) = distw(gene);
+						if (Q(i, j) != 0) {
+							std::normal_distribution<double> distw(0, sqrt(Q(i, j)));
+							//std::cout << rn << std::endl;
+							//w(i, j) = rn(i, j)*sqrt(Q(i, j));
+							w(i, j) = distw(gene);
+						}
+						else {
+							w(i, j) = 0;
+						}
+						
 					}
 				}
 				arma::mat v = arma::zeros(2, 4);
 				for (int i = 0; i < R.n_rows; i++) {
+
 					std::normal_distribution<double> distv(0, sqrt(R(i, i)));
 					v(i, i * 2) = distv(gene);
 				}
@@ -268,10 +275,12 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 				hxk1k_tmp(3, 3) = dr_tmp;
 
 				
-				Hx = H * hxk1k_tmp;
+				Hx << -(cy / (pow(cx, 2) + pow(cy, 2))) << 0 << cx / (pow(cx, 2) + pow(cy, 2)) << 0 << arma::endr
+					<< cx / sqrt(pow(cx, 2) + pow(cy, 2)) << 0 << cy / sqrt(pow(cx, 2) + pow(cy, 2)) << 0 << arma::endr;
 				arma::mat hzk1k_tmp = arma::zeros(2, 4);
 				hzk1k_tmp = H * hxk1k_tmp;
 
+				std::cout << "HXXXXXXXXXXXx " << Hx << std::endl;
 				arma::mat vk1 = arma::zeros(2, 4);
 				vk1 = zk1 - hzk1k_tmp;
 
@@ -290,6 +299,11 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 				sk1_tmp = R + H * pk1k_tmp*H.t();
 				//std::cout << Hx << std::endl;
 				sk1_tmp = abs(sk1_tmp);
+				//sk1_tmp << init_a_var + init_pos_var << init_vel_var << arma::endr
+					//<< init_vel_var << init_r_var + init_pos_var << arma::endr;
+
+				arma::mat sk12 = arma::zeros(2, 2);
+				sk12 = R + Hx * pk1k*Hx.t();
 
 				arma::mat wk1 = arma::zeros(4, 2);
 				arma::mat convxy(1, 2);
@@ -299,15 +313,22 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 				arma::mat sk1_tmp_tmp = arma::zeros(2, 2);
 				sk1_tmp_tmp(0, 0) = convxy(0, 0);
 				sk1_tmp_tmp(1, 1) = convxy(0, 1);
-				std::cout << "sk1 tmp tmp" << sk1_tmp << std::endl;
-				wk1 = pk1k * H.t()*arma::inv(sk1_tmp_tmp);
+				sk1_tmp_tmp = abs(sk1_tmp_tmp);
+				std::cout << "sk1 tmp" << sk1_tmp << std::endl;
+				std::cout << "sk1 tmp tmp" << sk12 << std::endl;
+				wk1 = pk1k * Hx.t()*arma::inv(sk12);
 
-				pk1k1 = pk1k - wk1 * sk1_tmp_tmp*wk1.t();
+				//pk1k1 = pk1k - wk1 * sk1_tmp*wk1.t();
+				//pk1k1 = p00;
+				pk1k1 = (arma::eye(4, 4) - wk1 * Hx)*pk1k;
 				std::cout << "pk1k1   " << pk1k1 << std::endl;
 				arma::mat hxk1k1 = arma::zeros(4, 4);
 				hxk1k1 = hxk1k + wk1 * vk1;
 
-
+				if (dx == 0) {
+					//while (!GetAsyncKeyState(VK_SPACE)) {}
+				}
+				
 
 
 				chxk1k1(arma::span(i * 4, i * 4 + 3), arma::span(0, 3)) = hxk1k1;
@@ -324,7 +345,7 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 				//sk1_tmp << init_a_var + init_pos_var << 0 << arma::endr
 				//	<< 0 << init_r_var + init_pos_var << arma::endr;
 				
-				sk1(arma::span(i * 2, i * 2 + 1), arma::span(0, 1)) = sk1_tmp;
+				sk1(arma::span(i * 2, i * 2 + 1), arma::span(0, 1)) = sk12;
 
 				
 				std::default_random_engine genu;
@@ -362,7 +383,7 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 					cv::Point com_c(cx, cy);
 					cv::Point com_p(px, py);
 					//cv::line(frame, com_track, com_track, cv::Scalar(0, 255, 0), 2);
-					//cv::line(frame, com_c, com_track, cv::Scalar(com_color(find_if_com(0), 0), com_color(find_if_com(0), 1), com_color(find_if_com(0), 2)), 2);
+					//cv::line(frame, com_p, com_track, cv::Scalar(com_color(find_if_com(0), 0), com_color(find_if_com(0), 1), com_color(find_if_com(0), 2)), 2);
 					//while (!GetAsyncKeyState(VK_SPACE)) {}
 					cv::line(frame, com_p, com_c, cv::Scalar(com_color(find_if_com(0), 0), com_color(find_if_com(0), 1), com_color(find_if_com(0), 2)), 2);
 					
@@ -394,7 +415,7 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 
 
 			P = P_temp;
-
+			hzk1k.elem(arma::find_nonfinite(hzk1k)).zeros();
 			id_store = t_id;
 			hz_store = hzk1k;
 			sk_store = sk1;

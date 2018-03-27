@@ -20,7 +20,7 @@ class EKF{
 	double init_quality = 0.2;
 
 	int start_all_frame_num;
-	double sigv = 2;
+	double sigv = 5;
 
 	arma::mat hz_store;
 	arma::mat id_store;

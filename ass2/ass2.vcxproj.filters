@@ -104,5 +104,8 @@
     <ClInclude Include="xyraconv2.h">
       <Filter>Header Files\conv</Filter>
     </ClInclude>
+    <ClInclude Include="xyraconv3.h">
+      <Filter>Header Files\conv</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -54,16 +54,19 @@ void IPDA::ipda(arma::mat meas_data,
 					curr_meas(current_meas_count * 2, 0) = (*cita);
 					curr_meas(current_meas_count * 2 + 1, 2) = (*citr);
 					
-					double dis = calcdis(zk1, hzk1k, sk1, i);	//calc distance to apply gate
+					double dis = calcdis(zk1, hzk1k, sk1, i, radi, sigv);	//calc distance to apply gate
 					std::cout << dis << std::endl;
 					if (dis <= pow(gamma, 2)) {			//apply gate
 						//measurement that pass the gate
 						//std::cout << "pass gate" << std::endl;
 
-						double like = likeicalc(sk1, zk1, hzk1k, i) / pg;
+						double like = likeicalc(sk1, zk1, hzk1k, i, radi, sigv) / pg;
 						tot_like = tot_like + like;
 						///std::cout << (*cita) << "  " << (*citr) << std::endl;
 						//track, meas 2d matrix
+						if (like <= 1e-6) {
+							//like = 0;
+						}
 						likeihood(i, current_meas_count) = like;
 						//std::cout << "like  loop" << current_meas_count << std::endl;
 					}
@@ -95,6 +98,7 @@ void IPDA::ipda(arma::mat meas_data,
 	likeihood.resize(find_id_size, current_meas_count);
 	beta.resize(find_id_size, current_meas_count);
 	curr_meas.resize(current_meas_count * 2, 4);
+	//likeihood.elem(arma::find_nonfinite(likeihood)).zeros();
 	std::cout << "like  " << likeihood << std::endl;
 	//std::cout <<"dk "<< dk << std::endl;
 	
@@ -188,6 +192,10 @@ void IPDA::ipda(arma::mat meas_data,
 			//weight_sum(0, 1) = -weight_sum(0, 1) + 500;
 
 			//xy2ra4(weight_sum, weight_ar, radi, sigv);
+
+			/*double testfind = beta_tmp.row(iii).index_max();
+			asso_data(iii, 4) = curr_meas(testfind * 2, 0);
+			asso_data(iii, 5) = curr_meas(testfind * 2 + 1, 2);*/
 			//asso points
 			asso_data(iii, 4) = weight_ar(0, 0);
 			asso_data(iii, 5) = weight_ar(0, 1);
@@ -221,7 +229,7 @@ void IPDA::ipda(arma::mat meas_data,
 			}
 			//std::cout << "p pp" << P(arma::span(iii * 4, iii * 4 + 3), arma::span(0, 3)) << std::endl;
 			//std::cout << "p tot" << p_tot(arma::span(iii * 4, iii * 4 + 3), arma::span(0, 3)) << std::endl;
-			P = p_tot;
+			P = p_tot; //P=P+p_tot;
 
 		}
 		else {

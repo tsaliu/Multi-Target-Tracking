@@ -80,6 +80,8 @@ int main(int argc, char *argv[]) {
 	std::poisson_distribution<> poiss(numfam);
 	arma::mat run_tar1 = arma::zeros(endt - initt - 1, 7);
 	arma::mat run_tar2 = arma::zeros(endt2 - initt2, 7);
+	arma::mat run_tar1_count = arma::zeros(endt - initt - 1, 1);
+	arma::mat run_tar2_count = arma::zeros(endt2 - initt2, 1);
 	for (int i = 0; i < nruns; i++) {
 		arma::mat save_com_all;
 		arma::mat tar1;
@@ -185,15 +187,37 @@ int main(int argc, char *argv[]) {
 		q.fill(0);
 		tar1.elem(arma::find_nonfinite(tar1)).zeros();
 		tar2.elem(arma::find_nonfinite(tar2)).zeros();
-		run_tar1 = (run_tar1 + tar1) / (i + 1);
-		run_tar2 = (run_tar2 + tar2) / (i + 1);
-		//std::cout << "tar1 " << tar1 << std::endl;
-		//std::cout << "tar2 " << tar2 << std::endl;
+		run_tar1.elem(arma::find_nonfinite(run_tar1)).zeros();
+		run_tar2.elem(arma::find_nonfinite(run_tar2)).zeros();
+		for (int ii = 0; ii < tar1.n_rows; ii++) {
+			if (arma::sum(tar1.row(ii)) != 0) {
+				run_tar1_count(ii, 0) += 1;
+			}
+		}
+		for (int ii = 0; ii < tar2.n_rows; ii++) {
+			if (arma::sum(tar2.row(ii)) != 0) {
+				run_tar2_count(ii, 0) += 1;
+			}
+		}
+		run_tar1 = (run_tar1 + tar1);
+		run_tar2 = (run_tar2 + tar2);
+		
+		run_tar1.elem(arma::find_nonfinite(run_tar1)).zeros();
+		run_tar2.elem(arma::find_nonfinite(run_tar2)).zeros();
+		std::cout << "tar1 " << tar1 << std::endl;
+		std::cout << "tar2 " << tar2 << std::endl;
 	}
-
+	for (int ii = 0; ii < run_tar1.n_rows; ii++) {
+		run_tar1.row(ii) = run_tar1.row(ii) / (run_tar1_count(ii, 0));
+	}
+	for (int ii = 0; ii < run_tar2.n_rows; ii++) {
+		run_tar2.row(ii) = run_tar2.row(ii) / (run_tar2_count(ii, 0));
+	}
+	run_tar1.elem(arma::find_nonfinite(run_tar1)).zeros();
+	run_tar2.elem(arma::find_nonfinite(run_tar2)).zeros();
 	//result.graphavg(graph, avg_xy, len, st);
 	cv::imshow("Output", frame);
-	cv::waitKey(1);
+	cv::waitKey(0);
 
 
 	std::cout << run_tar1 << std::endl;

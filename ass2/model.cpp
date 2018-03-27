@@ -17,8 +17,11 @@ void model::getdata(int radi, int k, int st, double sigv, arma::mat &F, arma::ma
 					double x, double y, double px, double py,
 					double &dx, double &dy, double &da, double &dr) {
 	int order = 2;
-	 
 	int T = st;
+	if (x == px) {
+		T = 0;
+	}
+	
 
 	arma::mat FF=arma::zeros(4, 4);
 	arma::mat QQ=arma::zeros(4, 4);
