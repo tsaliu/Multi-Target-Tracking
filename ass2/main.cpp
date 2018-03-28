@@ -73,17 +73,18 @@ int main(int argc, char *argv[]) {
 	EKF ekf;
 
 	model kfmodel;
-	int nruns = 1;
+	int nruns = 2;
 
 	runs result;
 	std::default_random_engine genp;
 	std::poisson_distribution<> poiss(numfam);
-	arma::mat run_tar1 = arma::zeros(endt - initt - 1, 7);
+	arma::mat run_tar1 = arma::zeros(endt - initt, 7);
 	arma::mat run_tar2 = arma::zeros(endt2 - initt2, 7);
-	arma::mat run_tar1_count = arma::zeros(endt - initt - 1, 1);
+	arma::mat run_tar1_count = arma::zeros(endt - initt, 1);
 	arma::mat run_tar2_count = arma::zeros(endt2 - initt2, 1);
+	arma::mat save_com_all;
 	for (int i = 0; i < nruns; i++) {
-		arma::mat save_com_all;
+		
 		arma::mat tar1;
 		arma::mat tar2;
 		std::cout << "run " << i + 1 << std::endl;
@@ -99,7 +100,7 @@ int main(int argc, char *argv[]) {
 
 			if (k >= initt && k < endt) {
 				target.graph(frame, target_data, k1);
-				meas.getdata(target_data(k1, arma::span(0, 1)));
+				meas.getdata(target_data(k1, arma::span(0, 1)), pd);
 				meas.truth(truth, k1);				//target with no meas noise ar
 				meas.truthxy(truthxy, k1);
 			}
@@ -125,9 +126,11 @@ int main(int argc, char *argv[]) {
 			
 			arma::mat save_com;
 			//may need to clear hzk1k, sk1
-			ekf.kf(frame, k, st, radius, meas_data, P, phxk1k1, chxk1k1, hzk1k, sk1, t_id, fad, pd, q, save_com);
+			ekf.kf(frame, k, st, radius, meas_data, P, phxk1k1, chxk1k1, hzk1k, sk1, t_id, fad, pd, initt2, q, save_com);
 			
-
+			if (k >= initt2) {
+				//while (!GetAsyncKeyState(VK_SPACE)) {}
+			}
 			
 			if (k >= initt && k < initt2) {
 				arma::mat sum = arma::sum(save_com) / save_com.n_rows;
@@ -162,13 +165,13 @@ int main(int argc, char *argv[]) {
 				tar1.insert_rows(tar1.n_rows, sum1);
 				tar2.insert_rows(tar2.n_rows, sum2);
 			}
-			else if (k >= endt && k <= endt2) {
+			else if (k >= endt && k < endt2) {
 				arma::mat sum = arma::sum(save_com) / save_com.n_rows;
 				//std::cout << "sum " << sum << std::endl;
 				tar2.insert_rows(tar2.n_rows, sum);
 			}
 			
-			//save_com_all.insert_rows(save_com_all.n_rows, save_com);
+			save_com_all.insert_rows(save_com_all.n_rows, save_com);
 			//std::cout << "save " << save_com_all << std::endl;
 
 			
@@ -189,23 +192,28 @@ int main(int argc, char *argv[]) {
 		tar2.elem(arma::find_nonfinite(tar2)).zeros();
 		run_tar1.elem(arma::find_nonfinite(run_tar1)).zeros();
 		run_tar2.elem(arma::find_nonfinite(run_tar2)).zeros();
+		std::cout << "HERe" << std::endl;
+		std::cout << tar1.n_rows << std::endl;
 		for (int ii = 0; ii < tar1.n_rows; ii++) {
 			if (arma::sum(tar1.row(ii)) != 0) {
 				run_tar1_count(ii, 0) += 1;
 			}
 		}
+		std::cout << "HERe" << std::endl;
 		for (int ii = 0; ii < tar2.n_rows; ii++) {
 			if (arma::sum(tar2.row(ii)) != 0) {
 				run_tar2_count(ii, 0) += 1;
 			}
 		}
+		std::cout << "HERe" << std::endl;
 		run_tar1 = (run_tar1 + tar1);
 		run_tar2 = (run_tar2 + tar2);
-		
+		std::cout << "HERe" << std::endl;
 		run_tar1.elem(arma::find_nonfinite(run_tar1)).zeros();
 		run_tar2.elem(arma::find_nonfinite(run_tar2)).zeros();
 		std::cout << "tar1 " << tar1 << std::endl;
 		std::cout << "tar2 " << tar2 << std::endl;
+
 	}
 	for (int ii = 0; ii < run_tar1.n_rows; ii++) {
 		run_tar1.row(ii) = run_tar1.row(ii) / (run_tar1_count(ii, 0));
@@ -216,12 +224,15 @@ int main(int argc, char *argv[]) {
 	run_tar1.elem(arma::find_nonfinite(run_tar1)).zeros();
 	run_tar2.elem(arma::find_nonfinite(run_tar2)).zeros();
 	//result.graphavg(graph, avg_xy, len, st);
+	std::cout << run_tar1 << std::endl;
+	std::cout << run_tar2 << std::endl;
+	std::cout << save_com_all << std::endl;
+	std::cout << truth2 << std::endl;
+	
 	cv::imshow("Output", frame);
 	cv::waitKey(0);
 
 
-	std::cout << run_tar1 << std::endl;
-	std::cout << run_tar2 << std::endl;
 	//meas_data.save("meas.txt", arma::arma_ascii);
 	std::cout << "Done" << std::endl;
 	while (!GetAsyncKeyState(VK_ESCAPE)) {}

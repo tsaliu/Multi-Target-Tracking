@@ -24,7 +24,8 @@ public:
 			arma::mat::col_iterator,
 			arma::mat, arma::mat, arma::mat, int, double,
 			arma::mat &, arma::mat &,
-			int, double, arma::mat &);
+			int, double, arma::mat &,
+			int);
 
 };
 

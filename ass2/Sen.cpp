@@ -2,7 +2,7 @@
 #include "randseed3.h"
 #include <random>
 
-void Sen::getdata(arma::mat datain ) {
+void Sen::getdata(arma::mat datain, double pdin) {
 	Txydata = datain;
 	double x = datain(0, 0)-500;
 	double y =-(datain(0, 1)-500);
@@ -15,6 +15,8 @@ void Sen::getdata(arma::mat datain ) {
 	data_tmp(0, 0) = in_a;
 	data_tmp(0, 1) = in_r;
 	Tdata = data_tmp;
+
+	pd = pdin;
 
 }
 
@@ -99,7 +101,7 @@ void Sen::gen(double ea, double er) {
 		sencase = 3;
 	}
 	else if (!Tdata.is_empty() && !Tdata2.is_empty()) {
-		sencase = 4;
+		sencase = 4; /////// case 4 is not working !!!!! 3/28
 	}
 
 	switch (sencase) {
@@ -108,11 +110,11 @@ void Sen::gen(double ea, double er) {
 			tot_pts = num_fa;
 			break;
 		case 2:
-			if (pd_dis > 0.9) {
+			if (pd_dis > pd) {
 				sen_data = fa;
 				tot_pts = num_fa;
 			}
-			else if (pd_dis <= 0.9) {
+			else if (pd_dis <= pd) {
 				tot_pts = num_fa + 1;
 				arma::mat sen_tmp = arma::resize(fa, tot_pts, 2);
 				arma::mat Tsen_data_tmp(1, 2);
@@ -122,7 +124,7 @@ void Sen::gen(double ea, double er) {
 				arma::vec noise = arma::randn(2, 1);
 				
 				noise(0, 0) = distn(genu);
-				noise(1, 0) = distn(genu);
+				noise(1, 0) = distn2(genu);
 				
 
 				for (int i = 0; i < tot_pts; i++) {
@@ -142,11 +144,11 @@ void Sen::gen(double ea, double er) {
 			}
 			break;
 		case 3:
-			if (pd_dis2 > 0.9) {
+			if (pd_dis2 > pd) {
 				sen_data = fa;
 				tot_pts = num_fa;
 			}
-			else if (pd_dis2 <= 0.9) {
+			else if (pd_dis2 <= pd) {
 				tot_pts = num_fa + 1;
 				arma::mat sen_tmp = arma::resize(fa, tot_pts, 2);
 				arma::mat Tsen_data_tmp(1, 2);
@@ -155,7 +157,7 @@ void Sen::gen(double ea, double er) {
 				arma::vec noise = arma::randn(2, 1);
 				
 				noise(0, 0) = distn(genu);
-				noise(1, 0) = distn(genu);
+				noise(1, 0) = distn2(genu);
 				
 
 				for (int i = 0; i < tot_pts; i++) {
@@ -176,11 +178,11 @@ void Sen::gen(double ea, double er) {
 			break;
 		case 4:
 			
-			if (pd_dis > 0.9 && pd_dis2 > 0.9) {
+			if (pd_dis > pd && pd_dis2 > pd) {
 				sen_data = fa;
 				tot_pts = num_fa;
 			}
-			else if (pd_dis > 0.9 && pd_dis2 <= 0.9) {
+			else if (pd_dis > pd && pd_dis2 <= pd) {
 				tot_pts = num_fa + 1;
 				arma::mat sen_tmp = arma::resize(fa, tot_pts, 2);
 				arma::mat Tsen_data_tmp(1, 2);
@@ -189,7 +191,7 @@ void Sen::gen(double ea, double er) {
 				arma::vec noise = arma::randn(2, 1);
 				
 				noise(0, 0) = distn(genu);
-				noise(1, 0) = distn(genu);
+				noise(1, 0) = distn2(genu);
 				
 
 				for (int i = 0; i < tot_pts; i++) {
@@ -207,7 +209,7 @@ void Sen::gen(double ea, double er) {
 				sen_data = sen_tmp;
 				Tsen_data = Tsen_data_tmp;
 			}
-			else if (pd_dis <= 0.9 && pd_dis2 > 0.9) {
+			else if (pd_dis <= pd && pd_dis2 > pd) {
 				tot_pts = num_fa + 1;
 				arma::mat sen_tmp = arma::resize(fa, tot_pts, 2);
 				arma::mat Tsen_data_tmp(1, 2);
@@ -216,7 +218,7 @@ void Sen::gen(double ea, double er) {
 				arma::vec noise = arma::randn(2, 1);
 				
 				noise(0, 0) = distn(genu);
-				noise(1, 0) = distn(genu);
+				noise(1, 0) = distn2(genu);
 				
 
 				for (int i = 0; i < tot_pts; i++) {
@@ -234,7 +236,7 @@ void Sen::gen(double ea, double er) {
 				sen_data = sen_tmp;
 				Tsen_data = Tsen_data_tmp;
 			}
-			else if (pd_dis <= 0.9 && pd_dis2 <= 0.9) {
+			else if (pd_dis <= pd && pd_dis2 <= pd) {
 				tot_pts = num_fa + 2;
 				arma::mat sen_tmp = arma::resize(fa, tot_pts, 2);
 				arma::mat Tsen_data_tmp(1, 2);
@@ -244,8 +246,8 @@ void Sen::gen(double ea, double er) {
 				arma::vec noise2 = arma::randn(2, 1);
 				
 				noise(0, 0) = distn(genu);
-				noise(1, 0) = distn(genu);
-				noise2(0, 0) = distn2(genu);
+				noise(1, 0) = distn2(genu);
+				noise2(0, 0) = distn(genu);
 				noise2(1, 0) = distn2(genu);
 
 				for (int i = 0; i < tot_pts; i++) {
@@ -265,7 +267,9 @@ void Sen::gen(double ea, double er) {
 						sen_tmp(i, 0) = fa(i - 2, 0);
 						sen_tmp(i, 1) = fa(i - 2, 1);
 					}
+					std::cout << Tdata2 << std::endl;
 				}
+				std::cout << sen_data << std::endl;
 				sen_data = sen_tmp;
 				Tsen_data = Tsen_data_tmp;
 			}

@@ -20,7 +20,7 @@ class EKF{
 	double init_quality = 0.2;
 
 	int start_all_frame_num;
-	double sigv = 5;
+	double sigv = 2;
 
 	arma::mat hz_store;
 	arma::mat id_store;
@@ -35,7 +35,7 @@ class EKF{
 public:
 	void kf(cv::Mat &,int, double, int, arma::mat, arma::mat &, 
 				arma::mat &, arma::mat &, arma::mat &, arma::mat &,
-				arma::mat &, double, double,
+				arma::mat &, double, double, int,
 				arma::mat &, arma::mat &);
 	//void ipda();
 };

@@ -16,7 +16,8 @@ void IPDA::ipda(arma::mat meas_data,
 		arma::mat::col_iterator ccita,
 		arma::mat hzk1k, arma::mat t_id, arma::mat sk1, int k, double st,
 		arma::mat &q, arma::mat &data_output,
-		int radi, double sigv, arma::mat &P){
+		int radi, double sigv, arma::mat &P,
+		int initt2){
 	int n = k / st * 2;
 	arma::mat curr_meas = arma::zeros(maxdetect * 2, 4);
 	
@@ -59,13 +60,13 @@ void IPDA::ipda(arma::mat meas_data,
 					if (dis <= pow(gamma, 2)) {			//apply gate
 						//measurement that pass the gate
 						//std::cout << "pass gate" << std::endl;
-
+						
 						double like = likeicalc(sk1, zk1, hzk1k, i, radi, sigv) / pg;
 						tot_like = tot_like + like;
-						///std::cout << (*cita) << "  " << (*citr) << std::endl;
+						std::cout << (*cita) << "  " << (*citr) << std::endl;
 						//track, meas 2d matrix
 						if (like <= 1e-6) {
-							//like = 0;
+							like = 0;
 						}
 						likeihood(i, current_meas_count) = like;
 						//std::cout << "like  loop" << current_meas_count << std::endl;
@@ -304,6 +305,15 @@ void IPDA::ipda(arma::mat meas_data,
 		asso_data(find_id_size + i, 3) = curr_meas(unasso_meas_at(i) * 2 + 1, 2);
 		asso_data(find_id_size + i, 4) = curr_meas(unasso_meas_at(i) * 2, 0);
 		asso_data(find_id_size + i, 5) = curr_meas(unasso_meas_at(i) * 2 + 1, 2);
+	}
+	if (k >= initt2) {
+		arma::mat t2in = arma::zeros(1, 6);
+		t2in(0, 0) = asso_data(asso_data.n_rows - 1, 0) + 1;
+		t2in(0, 2) = curr_meas(1 * 2, 0);
+		t2in(0, 3) = curr_meas(1 * 2 + 1, 2);
+		t2in(0, 4) = curr_meas(1 * 2, 0);
+		t2in(0, 5) = curr_meas(1 * 2 + 1, 2);
+		asso_data.insert_rows(asso_data.n_rows, t2in);
 	}
 
 

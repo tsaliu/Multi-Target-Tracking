@@ -25,7 +25,7 @@ class Sen{
 	
 
 public:
-	void getdata(arma::mat);
+	void getdata(arma::mat, double);
 	void getdata2(arma::mat);
 	void pos(int, int);
 	void error(double, double);

@@ -7,22 +7,22 @@
 
 void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, arma::mat &P,
 	arma::mat &phxk1k1, arma::mat &chxk1k1, arma::mat &hzk1k, arma::mat &sk1,
-	arma::mat &t_id, double lambda, double pd,
+	arma::mat &t_id, double lambda, double pd, int initt2,
 	arma::mat &q, arma::mat &out_save) {
 	
 	ipda.getpara(lambda, pd);
 	//arma::mat asso_data;
 
 	arma::mat p00 = arma::zeros(4, 4);
-	int init_pos_var = 100;
-	int init_vel_var = 50;
+	int init_pos_var = 200;
+	int init_vel_var = 100;
 	p00 << init_pos_var << 0 << 0 << 0 << arma::endr
 		<< 0 << init_vel_var << 0 << 0 << arma::endr
 		<< 0 << 0 << init_pos_var << 0 << arma::endr
 		<< 0 << 0 << 0 << init_vel_var << arma::endr;
 	arma::mat R = arma::zeros(2, 2);
-	double init_a_var = 0.05;
-	double init_r_var = 1;
+	double init_a_var = 0.02;
+	double init_r_var = 0.1;
 	R << init_a_var << 0 << arma::endr
 		<< 0 << init_r_var << arma::endr;
 
@@ -69,8 +69,8 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 
 				
 
-				sk1_tmp << init_a_var*10   << 0 << arma::endr
-					<< 0 << init_r_var*10  << arma::endr;
+				sk1_tmp << init_a_var   << 0 << arma::endr
+					<< 0 << init_r_var  << arma::endr;
 
 				sk1(arma::span((i - 1) * 2, (i - 1) * 2 + 1), arma::span(0, 1)) = sk1_tmp;
 			
@@ -96,9 +96,22 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 		arma::mat save_com = arma::zeros(0, 7);
 		//if (k / st - 1 == start_all_frame_num) {
 			//std::cout << meas_data << std::endl;
-			ipda.ipda(meas_data, cita, hz_store, id_store, sk_store, k, st, q, asso_data, radi, sigv, P);
+			ipda.ipda(meas_data, cita, hz_store, id_store, sk_store, k, st, q, asso_data, radi, sigv, P, initt2);
 			
-			
+			/*if (k == initt2) {
+				asso_data.resize(asso_data.n_rows + 1, 6);
+				arma::mat::col_iterator cita = meas_data.begin_col(n);
+				arma::mat::col_iterator citr = meas_data.begin_col(n + 1);
+				cita++;
+				citr++;
+
+				asso_data(asso_data.n_rows + 1, 0) = t_id(t_id.index_max()) + 1;
+				asso_data(asso_data.n_rows + 1, 2) = (*cita);
+				asso_data(asso_data.n_rows + 1, 3) = (*citr);
+				asso_data(asso_data.n_rows + 1, 4) = (*cita);
+				asso_data(asso_data.n_rows + 1, 5) = (*citr);
+				
+			}*/
 			/* attempt to create new asso data when empty
 			if (asso_data.is_empty()) {
 				arma::mat::col_iterator cita = meas_data.begin_col(n);
@@ -280,32 +293,32 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 				arma::mat hzk1k_tmp = arma::zeros(2, 4);
 				hzk1k_tmp = H * hxk1k_tmp;
 
-				std::cout << "HXXXXXXXXXXXx " << Hx << std::endl;
+				
 				arma::mat vk1 = arma::zeros(2, 4);
 				vk1 = zk1 - hzk1k_tmp;
 
 				arma::mat pk1k = arma::zeros(4, 4);
 				pk1k = F * Pkk*F.t() + Q;
 
-				arma::mat sk1_tmp = arma::zeros(2, 2);
-				arma::mat pk1k_xy_tmp(1, 2);
-				arma::mat pk1k_ar_tmp(1, 2);
-				pk1k_xy_tmp << pk1k(0, 0) << pk1k(2, 2) << arma::endr;
-				xy2ra2(pk1k_xy_tmp, pk1k_ar_tmp, radi, sigv);
-				arma::mat pk1k_tmp = arma::zeros(4, 4);
-				pk1k_tmp = pk1k;
-				pk1k_tmp(0, 0) = pk1k_ar_tmp(0, 0);
-				pk1k_tmp(2, 2) = pk1k_ar_tmp(0, 1);
-				sk1_tmp = R + H * pk1k_tmp*H.t();
-				//std::cout << Hx << std::endl;
-				sk1_tmp = abs(sk1_tmp);
-				//sk1_tmp << init_a_var + init_pos_var << init_vel_var << arma::endr
-					//<< init_vel_var << init_r_var + init_pos_var << arma::endr;
+				//arma::mat sk1_tmp = arma::zeros(2, 2);
+				//arma::mat pk1k_xy_tmp(1, 2);
+				//arma::mat pk1k_ar_tmp(1, 2);
+				//pk1k_xy_tmp << pk1k(0, 0) << pk1k(2, 2) << arma::endr;
+				//xy2ra2(pk1k_xy_tmp, pk1k_ar_tmp, radi, sigv);
+				//arma::mat pk1k_tmp = arma::zeros(4, 4);
+				//pk1k_tmp = pk1k;
+				//pk1k_tmp(0, 0) = pk1k_ar_tmp(0, 0);
+				//pk1k_tmp(2, 2) = pk1k_ar_tmp(0, 1);
+				//sk1_tmp = R + H * pk1k_tmp*H.t();
+				////std::cout << Hx << std::endl;
+				//sk1_tmp = abs(sk1_tmp);
+				////sk1_tmp << init_a_var + init_pos_var << init_vel_var << arma::endr
+				//	//<< init_vel_var << init_r_var + init_pos_var << arma::endr;
 
 				arma::mat sk12 = arma::zeros(2, 2);
 				sk12 = R + Hx * pk1k*Hx.t();
 
-				arma::mat wk1 = arma::zeros(4, 2);
+				/*
 				arma::mat convxy(1, 2);
 				arma::mat convar(1, 2);
 				convar << sk1_tmp(0, 0) << sk1_tmp(1, 1) << arma::endr;
@@ -315,13 +328,14 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 				sk1_tmp_tmp(1, 1) = convxy(0, 1);
 				sk1_tmp_tmp = abs(sk1_tmp_tmp);
 				std::cout << "sk1 tmp" << sk1_tmp << std::endl;
-				std::cout << "sk1 tmp tmp" << sk12 << std::endl;
+				std::cout << "sk1 tmp tmp" << sk12 << std::endl;*/
+				arma::mat wk1 = arma::zeros(4, 2);
 				wk1 = pk1k * Hx.t()*arma::inv(sk12);
 
 				//pk1k1 = pk1k - wk1 * sk1_tmp*wk1.t();
 				//pk1k1 = p00;
 				pk1k1 = (arma::eye(4, 4) - wk1 * Hx)*pk1k;
-				std::cout << "pk1k1   " << pk1k1 << std::endl;
+				//std::cout << "pk1k1   " << pk1k1 << std::endl;
 				arma::mat hxk1k1 = arma::zeros(4, 4);
 				hxk1k1 = hxk1k + wk1 * vk1;
 
@@ -391,6 +405,10 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 					save_tmp(0, 0) = k;
 					save_tmp(0, arma::span(1, 6)) = asso_data.row(i);
 					save_com.insert_rows(save_com.n_rows, save_tmp);
+
+					char idname[100];
+					sprintf_s(idname, "ID: %i", (int)asso_data(i,0));
+					putText(frame, idname, com_c, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1);
 				
 					//std::cout << "save " << save_com << std::endl;
 					//while (!GetAsyncKeyState(VK_SPACE)) {}
