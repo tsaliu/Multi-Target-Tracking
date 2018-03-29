@@ -145,6 +145,7 @@
     <ClInclude Include="xyraconv.h" />
     <ClInclude Include="xyraconv2.h" />
     <ClInclude Include="xyraconv3.h" />
+    <ClInclude Include="xyraconv4.h" />
     <ClInclude Include="xyraconvert.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -17,8 +17,8 @@ int len = endt - initt;
 double initvx = (dstx - initx) / len, initvy = (dsty - inity) / len;
 
 int initt2 = 15, endt2 = 40;
-double initx2 = 600, inity2 = 100;
-double dstx2 = 900, dsty2 = 400;
+double initx2 = 50, inity2 = 550;
+double dstx2 = 400, dsty2 = 800;
 double nx2 = 2, ny2 = 2;
 int len2 = endt2 - initt2;
 double initvx2 = (dstx2 - initx2) / len2, initvy2 = (dsty2 - inity2) / len2;

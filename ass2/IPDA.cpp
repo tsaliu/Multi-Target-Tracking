@@ -16,8 +16,7 @@ void IPDA::ipda(arma::mat meas_data,
 		arma::mat::col_iterator ccita,
 		arma::mat hzk1k, arma::mat t_id, arma::mat sk1, int k, double st,
 		arma::mat &q, arma::mat &data_output,
-		int radi, double sigv, arma::mat &P,
-		int initt2){
+		int radi, double sigv, arma::mat &P){
 	int n = k / st * 2;
 	arma::mat curr_meas = arma::zeros(maxdetect * 2, 4);
 	
@@ -34,7 +33,7 @@ void IPDA::ipda(arma::mat meas_data,
 
 	int current_meas_count = 0;
 	if (*ccita != 0) {					//check if have measurement, by check the first row element of column
-		std::cout << "Have measurement " << k << std::endl;
+		//std::cout << "Have measurement " << k << std::endl;
 		for (int i = 0; i < find_id_size; i++) { //loop for every track
 			//reset iterator
 			//std::cout << meas_data << std::endl;
@@ -56,16 +55,17 @@ void IPDA::ipda(arma::mat meas_data,
 					curr_meas(current_meas_count * 2 + 1, 2) = (*citr);
 					
 					double dis = calcdis(zk1, hzk1k, sk1, i, radi, sigv);	//calc distance to apply gate
-					std::cout << dis << std::endl;
+					//std::cout << dis << std::endl;
 					if (dis <= pow(gamma, 2)) {			//apply gate
 						//measurement that pass the gate
 						//std::cout << "pass gate" << std::endl;
 						
 						double like = likeicalc(sk1, zk1, hzk1k, i, radi, sigv) / pg;
 						tot_like = tot_like + like;
-						std::cout << (*cita) << "  " << (*citr) << std::endl;
-						//track, meas 2d matrix
-						if (like <= 1e-6) {
+						//std::cout << (*cita) << "  " << (*citr) << std::endl;
+						
+						//ignore too small likeihood
+						if (like <= 3e-5) {
 							like = 0;
 						}
 						likeihood(i, current_meas_count) = like;
@@ -88,7 +88,7 @@ void IPDA::ipda(arma::mat meas_data,
 	else {
 		//since no meas dk=pd pg
 		for (int i = 0; i < find_id_size; i++) {
-			std::cout << "No measurement" << std::endl;
+			std::cout << "No measurement " << k  << std::endl;
 			dk_store_tmp(i, 0) = pg * pd;
 		}
 		likeihood.fill(0);
@@ -100,7 +100,7 @@ void IPDA::ipda(arma::mat meas_data,
 	beta.resize(find_id_size, current_meas_count);
 	curr_meas.resize(current_meas_count * 2, 4);
 	//likeihood.elem(arma::find_nonfinite(likeihood)).zeros();
-	std::cout << "like  " << likeihood << std::endl;
+	//std::cout << "like  " << likeihood << std::endl;
 	//std::cout <<"dk "<< dk << std::endl;
 	
 	//track quality, beta prob
@@ -146,8 +146,8 @@ void IPDA::ipda(arma::mat meas_data,
 		//q(i, k / st) = (1 - dk(i, 0))*(q(i, k / st)) / (1 - dk(i, 0) * q(i, k / st)); //need to change to k/st
 		//std::cout <<"hist check " <<hist_check << std::endl;
 	}
-	//std::cout <<"q "<<q.col((k-1)/st)<< q.col(k/st) << std::endl;
-	std::cout <<"beta " << beta << std::endl;
+	
+	//std::cout <<"beta " << beta << std::endl;
 	
 	//std::cout << "currmeascout " << current_meas_count << std::endl;
 	
@@ -306,19 +306,11 @@ void IPDA::ipda(arma::mat meas_data,
 		asso_data(find_id_size + i, 4) = curr_meas(unasso_meas_at(i) * 2, 0);
 		asso_data(find_id_size + i, 5) = curr_meas(unasso_meas_at(i) * 2 + 1, 2);
 	}
-	if (k >= initt2) {
-		arma::mat t2in = arma::zeros(1, 6);
-		t2in(0, 0) = asso_data(asso_data.n_rows - 1, 0) + 1;
-		t2in(0, 2) = curr_meas(1 * 2, 0);
-		t2in(0, 3) = curr_meas(1 * 2 + 1, 2);
-		t2in(0, 4) = curr_meas(1 * 2, 0);
-		t2in(0, 5) = curr_meas(1 * 2 + 1, 2);
-		asso_data.insert_rows(asso_data.n_rows, t2in);
-	}
 
 
 
-	std::cout << asso_data << std::endl;
+
+	//std::cout << asso_data << std::endl;
 	int del_track_size = find_id_size;
 	arma::mat q_tmp = q.col(k / st);
 
@@ -334,30 +326,6 @@ void IPDA::ipda(arma::mat meas_data,
 	q.col(k / st) = q_tmp;
 	
 
-	/*attempt to create new asso data when empty
-	arma::mat p00 = arma::zeros(4, 4);
-	int init_pos_var = 200;
-	int init_vel_var = 50;
-	p00 << init_pos_var << 0 << 0 << 0 << arma::endr
-		<< 0 << init_vel_var << 0 << 0 << arma::endr
-		<< 0 << 0 << init_pos_var << 0 << arma::endr
-		<< 0 << 0 << 0 << init_vel_var << arma::endr;
-	arma::mat p_re = arma::zeros(4 * current_meas_count, 4);
-	if (asso_data.is_empty()) {
-		for (int i = 0; i < current_meas_count; i++) {
-			arma::mat re_create(1, 6);
-			re_create << t_id(t_id.index_max()) + i + 1 << init_quality
-				<< curr_meas(i * 2, 0) << curr_meas(i * 2 + 1, 2)
-				<< curr_meas(i * 2, 0) << curr_meas(i * 2 + 1, 2) << arma::endr;
-			asso_data.insert_rows(asso_data.n_rows, re_create);
-
-			
-			p_re(arma::span(i * 4, i * 4 + 3), arma::span(0, 3)) = p00;
-		}
-		p_re.resize(4 * maxdetect, 4);
-		P = p_re;
-	}
-	*/
 	//for (int iiii = 0; iiii < asso_data.n_rows; iiii++) {
 		int at_prow = 1000;
 		arma::uvec find_unasso_track = arma::find(asso_data(arma::span(0, asso_data.n_rows - 1), arma::span(0, 5)) == 0);
@@ -376,7 +344,7 @@ void IPDA::ipda(arma::mat meas_data,
 	//}
 
 	data_output = asso_data;
-	std::cout << asso_data << std::endl;
+	//std::cout << asso_data << std::endl;
 }
 
 

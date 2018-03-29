@@ -35,7 +35,7 @@ class EKF{
 public:
 	void kf(cv::Mat &,int, double, int, arma::mat, arma::mat &, 
 				arma::mat &, arma::mat &, arma::mat &, arma::mat &,
-				arma::mat &, double, double, int,
+				arma::mat &, double, double,
 				arma::mat &, arma::mat &);
 	//void ipda();
 };

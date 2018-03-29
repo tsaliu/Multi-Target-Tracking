@@ -267,9 +267,9 @@ void Sen::gen(double ea, double er) {
 						sen_tmp(i, 0) = fa(i - 2, 0);
 						sen_tmp(i, 1) = fa(i - 2, 1);
 					}
-					std::cout << Tdata2 << std::endl;
+					//std::cout << Tdata2 << std::endl;
 				}
-				std::cout << sen_data << std::endl;
+				//std::cout << sen_data << std::endl;
 				sen_data = sen_tmp;
 				Tsen_data = Tsen_data_tmp;
 			}

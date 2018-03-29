@@ -7,7 +7,7 @@
 
 void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, arma::mat &P,
 	arma::mat &phxk1k1, arma::mat &chxk1k1, arma::mat &hzk1k, arma::mat &sk1,
-	arma::mat &t_id, double lambda, double pd, int initt2,
+	arma::mat &t_id, double lambda, double pd,
 	arma::mat &q, arma::mat &out_save) {
 	
 	ipda.getpara(lambda, pd);
@@ -21,8 +21,8 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 		<< 0 << 0 << init_pos_var << 0 << arma::endr
 		<< 0 << 0 << 0 << init_vel_var << arma::endr;
 	arma::mat R = arma::zeros(2, 2);
-	double init_a_var = 0.02;
-	double init_r_var = 0.1;
+	double init_a_var = 0.05;
+	double init_r_var = 0.5;
 	R << init_a_var << 0 << arma::endr
 		<< 0 << init_r_var << arma::endr;
 
@@ -56,7 +56,7 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 				com_size = 0;
 
 
-				std::cout << (*cita) << " what " << (*citr) << std::endl;
+				//std::cout << (*cita) << " what " << (*citr) << std::endl;
 				cmeas_tmp << (*cita) << (*citr) << arma::endr;
 				ra2xy2(cmeas_tmp, cstate_tmp, radi, sigv);
 				chxk1k1((i - 1) * 4 + 0, 0) = cstate_tmp(0, 0);
@@ -96,7 +96,7 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 		arma::mat save_com = arma::zeros(0, 7);
 		//if (k / st - 1 == start_all_frame_num) {
 			//std::cout << meas_data << std::endl;
-			ipda.ipda(meas_data, cita, hz_store, id_store, sk_store, k, st, q, asso_data, radi, sigv, P, initt2);
+			ipda.ipda(meas_data, cita, hz_store, id_store, sk_store, k, st, q, asso_data, radi, sigv, P);
 			
 			/*if (k == initt2) {
 				asso_data.resize(asso_data.n_rows + 1, 6);
@@ -382,7 +382,7 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 						com_data.insert_rows(com_data.n_rows, asso_data.row(i));
 					}
 					//for display com tracks
-					std::cout << "k = " << k << std::endl;
+					//std::cout << "k = " << k << std::endl;
 					//std::cout << "GGGGGGGGGGGGGGGGGGGGGGGGGGGG" << std::endl;
 					//while (!GetAsyncKeyState(VK_SPACE)) {}
 				
@@ -427,7 +427,7 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 					}
 					
 				}
-				std::cout <<"com id "<< com_id << std::endl;
+				//std::cout <<"com id "<< com_id << std::endl;
 				
 			}
 

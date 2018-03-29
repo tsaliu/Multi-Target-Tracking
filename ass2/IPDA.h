@@ -10,7 +10,7 @@ class IPDA{
 	int deg = 2;
 	double gamma, lambda, pd;
 	double init_quality = 0.2;
-	double com_th = 0.9;
+	double com_th = 0.95;
 	double term_th = 0.05;
 
 	//since likelihood is scalar
@@ -24,8 +24,7 @@ public:
 			arma::mat::col_iterator,
 			arma::mat, arma::mat, arma::mat, int, double,
 			arma::mat &, arma::mat &,
-			int, double, arma::mat &,
-			int);
+			int, double, arma::mat &);
 
 };
 
