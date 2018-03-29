@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 	EKF ekf;
 
 	model kfmodel;
-	int nruns = 20;
+	int nruns = 10;
 
 	runs result;
 	std::default_random_engine genp;
@@ -86,8 +86,12 @@ int main(int argc, char *argv[]) {
 	arma::mat run_tar2 = arma::zeros(endt2 - initt2, 3);
 	arma::mat run_tarxy1 = arma::zeros(endt - initt, 3);
 	arma::mat run_tarxy2 = arma::zeros(endt2 - initt2, 3);
+	arma::mat run_tarxyv1 = arma::zeros(endt - initt - 1, 3);
+	arma::mat run_tarxyv2 = arma::zeros(endt2 - initt2 - 1, 3);
 	arma::mat run_tar1_count = arma::zeros(endt - initt, 3);
 	arma::mat run_tar2_count = arma::zeros(endt2 - initt2, 3);
+	arma::mat run_tar1v_count = arma::zeros(endt - initt - 1, 3);
+	arma::mat run_tar2v_count = arma::zeros(endt2 - initt2 - 1, 3);
 	arma::mat run_tar1_avg = arma::zeros(endt - initt, 3);
 	arma::mat run_tar2_avg = arma::zeros(endt2 - initt2, 3);
 	arma::mat save_com_all;
@@ -145,7 +149,7 @@ int main(int argc, char *argv[]) {
 			arma::mat save_com;
 			//may need to clear hzk1k, sk1
 			ekf.kf(frame, k, st, radius, meas_data, P, phxk1k1, chxk1k1, hzk1k, sk1, t_id, fad, pd, q, save_com);
-			
+			//std::cout << chxk1k1 << std::endl;
 			if (k >= initt2) {
 				//while (!GetAsyncKeyState(VK_SPACE)) {}
 			}
@@ -217,6 +221,12 @@ int main(int argc, char *argv[]) {
 		arma::mat truthk2 = truth2;
 		arma::mat truthkxy = truthxy;
 		arma::mat truthkxy2 = truthxy2;
+		arma::mat truthkxyv = arma::zeros(endt - initt - 1, 3);
+		arma::mat truthkxyv2 = arma::zeros(endt2 - initt2 - 1, 3);
+		truthkxyv.col(1).fill(initvx);
+		truthkxyv.col(2).fill(initvy);
+		truthkxyv2.col(1).fill(initvx2);
+		truthkxyv2.col(2).fill(initvy2);
 		arma::mat ks = arma::zeros(lent, 1);
 		for (int ii = 0; ii < ks.n_rows; ii++) {
 			ks(ii, 0) = ii + 1;
@@ -225,7 +235,8 @@ int main(int argc, char *argv[]) {
 		truthkxy.insert_cols(0, ks(arma::span(initt - 1, initt - 1 + truthkxy.n_rows - 1), 0));
 		truthk2.insert_cols(0, ks(arma::span(initt2 - 1, initt2 - 1 + truthk2.n_rows - 1), 0));
 		truthkxy2.insert_cols(0, ks(arma::span(initt2 - 1, initt2 - 1 + truthkxy2.n_rows - 1), 0));
-		
+		truthkxyv.col(0) = truthk(arma::span(1, truthk.n_rows - 1), 0);
+		truthkxyv2.col(0) = truthk2(arma::span(1, truthk2.n_rows - 1), 0);
 		double min_r = arma::min(truthk.col(2));
 		double max_r = arma::max(truthk.col(2));
 		double min_a = arma::min(truthk.col(1));
@@ -242,6 +253,8 @@ int main(int argc, char *argv[]) {
 		arma::mat tar2_avg = arma::zeros(endt2 - initt2, 3);
 		arma::mat tar1_avgxy = arma::zeros(endt - initt, 3);
 		arma::mat tar2_avgxy = arma::zeros(endt2 - initt2, 3);
+		arma::mat tar1_avgxyv = arma::zeros(endt - initt - 1, 3);
+		arma::mat tar2_avgxyv = arma::zeros(endt2 - initt2 - 1, 3);
 		arma::mat tar1_ct = arma::zeros(endt - initt, 1);
 		arma::mat tar2_ct = arma::zeros(endt2 - initt2, 1);
 		for (int ii = 0; ii < save_com_all.n_rows; ii++) {
@@ -260,8 +273,8 @@ int main(int argc, char *argv[]) {
 				}
 				//std::cout << extract_track << std::endl;
 
-				if ((arma::min(extract_track.col(5)) < (std::_Pi / 2) * 0.9 && arma::min(extract_track.col(5)) > -(std::_Pi / 2) * 0.9) ||
-					(arma::max(extract_track.col(5)) > -(std::_Pi / 2)*0.9 && arma::max(extract_track.col(5)) < (std::_Pi / 2)*0.9) ||
+				if ((arma::min(extract_track.col(5)) < (min_a) * 0.8 && arma::min(extract_track.col(5)) > (max_a2) * 0.8) ||
+					(arma::max(extract_track.col(5)) > (max_a2)*0.8 && arma::max(extract_track.col(5)) < (min_a)*0.8) ||
 					(arma::min(extract_track.col(6)) < (min_r)*0.8 || arma::max(extract_track.col(6)) > (max_r*1.10)) ||
 					(arma::min(extract_track.col(6)) < (min_r2)*0.8 || arma::max(extract_track.col(6)) > (max_r2*1.10))) {
 					std::cout << "ft id  " << extract_track(0,1)<< std::endl;
@@ -350,6 +363,11 @@ int main(int argc, char *argv[]) {
 				late_first2 = false;
 			}
 		}
+		tar1_avgxyv = arma::diff(tar1_avgxy);
+		tar2_avgxyv = arma::diff(tar2_avgxy);
+
+		tar1_avgxyv.col(0) = truthk(arma::span(1, truthk.n_rows - 1), 0);
+		tar2_avgxyv.col(0) = truthk2(arma::span(1, truthk2.n_rows - 1), 0);
 		tar1_avg.col(0) = truthk.col(0);
 		tar2_avg.col(0) = truthk2.col(0);
 		tar1_avgxy.col(0) = truthk.col(0);
@@ -358,12 +376,17 @@ int main(int argc, char *argv[]) {
 		run_tar2.col(0) = truthk2.col(0);
 		run_tarxy1.col(0) = truthk.col(0);
 		run_tarxy2.col(0) = truthk2.col(0);
+		run_tarxyv1.col(0) = truthk(arma::span(1, truthk.n_rows - 1), 0);
+		run_tarxyv2.col(0) = truthk2(arma::span(1, truthk2.n_rows - 1), 0);
 		run_tar1_avg.col(0) = truthk.col(0);
 		run_tar2_avg.col(0) = truthk2.col(0);
 		std::cout << tar1_avg << std::endl;
 		std::cout << tar2_avg << std::endl;
 		std::cout << tar1_avgxy << std::endl;
 		std::cout << tar2_avgxy << std::endl;
+		std::cout << tar1_avgxyv << std::endl;
+		std::cout << tar2_avgxyv << std::endl;
+		
 
 		double ft_rate = (double)num_ft / (double)num_com;
 		arma::uvec find_late1 = arma::find(tar1_avg.col(1) == 0);
@@ -392,6 +415,19 @@ int main(int argc, char *argv[]) {
 		//run_tar1_avg.elem(arma::find_nonfinite(run_tar1_avg)).fill(0);
 		//run_tar2_avg.elem(arma::find_nonfinite(run_tar2_avg)).fill(0);
 		std::cout << run_tar1 << std::endl;
+
+		for (int ii = 0; ii < tar1_avgxyv.n_rows; ii++) {
+			if (tar1_avgxyv(ii, 1) != 0) {
+				run_tar1v_count(ii, 0) += 1;
+				run_tarxyv1(ii, arma::span(1, 2)) += (tar1_avgxyv(ii, arma::span(1, 2)) - truthkxyv(ii, arma::span(1, 2))) % (tar1_avgxyv(ii, arma::span(1, 2)) - truthkxyv(ii, arma::span(1, 2)));
+			}
+		}
+		for (int ii = 0; ii < tar2_avgxyv.n_rows; ii++) {
+			if (tar2_avgxyv(ii, 1) != 0) {
+				run_tar2v_count(ii, 0) += 1;
+				run_tarxyv2(ii, arma::span(1, 2)) += (tar2_avgxyv(ii, arma::span(1, 2)) - truthkxyv2(ii, arma::span(1, 2))) % (tar2_avgxyv(ii, arma::span(1, 2)) - truthkxyv2(ii, arma::span(1, 2)));
+			}
+		}
 		
 		avg_late1 += late1;
 		avg_late2 += late2;
@@ -432,13 +468,26 @@ int main(int argc, char *argv[]) {
 			//run_tar2_avg.row(ii)= run_tar2_avg.row(ii) / run_tar2_count(ii, 0);
 		}
 	}
+	for (int ii = 0; ii < run_tarxyv1.n_rows; ii++) {
+		if (run_tarxyv1(ii, 1) != 0) {
+			run_tarxyv1(ii, arma::span(1, 2)) = run_tarxyv1(ii, arma::span(1, 2)) / run_tarxyv1(ii, 0);
+		}
+	}
+	for (int ii = 0; ii < run_tarxyv2.n_rows; ii++) {
+		if (run_tarxyv2(ii, 1) != 0) {
+			run_tarxyv2(ii, arma::span(1, 2)) = run_tarxyv2(ii, arma::span(1, 2)) / run_tarxyv2(ii, 0);
+		}
+	}
 	run_tar1(arma::span(0, run_tar1.n_rows - 1), arma::span(1, 2)) = sqrt(run_tar1(arma::span(0, run_tar1.n_rows - 1), arma::span(1, 2)));
 	run_tar2(arma::span(0, run_tar2.n_rows - 1), arma::span(1, 2)) = sqrt(run_tar2(arma::span(0, run_tar2.n_rows - 1), arma::span(1, 2)));
 	run_tarxy1(arma::span(0, run_tarxy1.n_rows - 1), arma::span(1, 2)) = sqrt(run_tarxy1(arma::span(0, run_tarxy1.n_rows - 1), arma::span(1, 2)));
 	run_tarxy2(arma::span(0, run_tarxy2.n_rows - 1), arma::span(1, 2)) = sqrt(run_tarxy2(arma::span(0, run_tarxy2.n_rows - 1), arma::span(1, 2)));
+	run_tarxyv1(arma::span(0, run_tarxyv1.n_rows - 1), arma::span(1, 2)) = sqrt(run_tarxyv1(arma::span(0, run_tarxyv1.n_rows - 1), arma::span(1, 2)));
+	run_tarxyv2(arma::span(0, run_tarxyv2.n_rows - 1), arma::span(1, 2)) = sqrt(run_tarxyv2(arma::span(0, run_tarxyv2.n_rows - 1), arma::span(1, 2)));
+	
 	std::cout <<"after "<< run_tar1 << std::endl;
 	std::cout << "after xy" << run_tarxy1 << std::endl;
-
+	std::cout << "after xy v" << run_tarxyv1 << std::endl;
 	//run_tar1_avg = run_tar1_avg / nruns;
 	//run_tar2_avg = run_tar2_avg / nruns;
 	run_tar1_avg.col(0) = run_tar1_avg.col(0) / 2;
