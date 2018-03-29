@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
 				meas.truthxy2(truthxy2, k2);
 			}
 			
-			
+			//std::cout << "HERE" << std::endl;
 
 			meas.fa_gen(numfa, radius);
 			meas.gen(ea, er);
@@ -262,8 +262,8 @@ int main(int argc, char *argv[]) {
 
 				if ((arma::min(extract_track.col(5)) < (std::_Pi / 2) * 0.9 && arma::min(extract_track.col(5)) > -(std::_Pi / 2) * 0.9) ||
 					(arma::max(extract_track.col(5)) > -(std::_Pi / 2)*0.9 && arma::max(extract_track.col(5)) < (std::_Pi / 2)*0.9) ||
-					(arma::min(extract_track.col(6))<(min_r/2)*1.10  || arma::max(extract_track.col(6))>(max_r*1.10)) ||
-					(arma::min(extract_track.col(6))<(min_r2 / 2)*1.10 || arma::max(extract_track.col(6))>(max_r2*1.10))) {
+					(arma::min(extract_track.col(6)) < (min_r)*0.8 || arma::max(extract_track.col(6)) > (max_r*1.10)) ||
+					(arma::min(extract_track.col(6)) < (min_r2)*0.8 || arma::max(extract_track.col(6)) > (max_r2*1.10))) {
 					std::cout << "ft id  " << extract_track(0,1)<< std::endl;
 					num_ft++;
 				}
@@ -358,6 +358,8 @@ int main(int argc, char *argv[]) {
 		run_tar2.col(0) = truthk2.col(0);
 		run_tarxy1.col(0) = truthk.col(0);
 		run_tarxy2.col(0) = truthk2.col(0);
+		run_tar1_avg.col(0) = truthk.col(0);
+		run_tar2_avg.col(0) = truthk2.col(0);
 		std::cout << tar1_avg << std::endl;
 		std::cout << tar2_avg << std::endl;
 		std::cout << tar1_avgxy << std::endl;
@@ -387,7 +389,8 @@ int main(int argc, char *argv[]) {
 		}
 		run_tar1_avg += tar1_avgxy;
 		run_tar2_avg += tar2_avgxy;
-
+		//run_tar1_avg.elem(arma::find_nonfinite(run_tar1_avg)).fill(0);
+		//run_tar2_avg.elem(arma::find_nonfinite(run_tar2_avg)).fill(0);
 		std::cout << run_tar1 << std::endl;
 		
 		avg_late1 += late1;
@@ -422,10 +425,11 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	for (int ii = 0; ii < run_tar2.n_rows; ii++) {
-		if (run_tar1(ii, 1) != 0) {
+		if (run_tar2(ii, 1) != 0) {
 			run_tar2(ii, arma::span(1, 2)) = run_tar2(ii, arma::span(1, 2)) / run_tar2_count(ii, 0);
 			run_tarxy2(ii, arma::span(1, 2)) = run_tarxy2(ii, arma::span(1, 2)) / run_tar2_count(ii, 0);
 			run_tar2_avg(ii, arma::span(1, 2)) = run_tar2_avg(ii, arma::span(1, 2)) / run_tar2_count(ii, 0);
+			//run_tar2_avg.row(ii)= run_tar2_avg.row(ii) / run_tar2_count(ii, 0);
 		}
 	}
 	run_tar1(arma::span(0, run_tar1.n_rows - 1), arma::span(1, 2)) = sqrt(run_tar1(arma::span(0, run_tar1.n_rows - 1), arma::span(1, 2)));
@@ -437,31 +441,42 @@ int main(int argc, char *argv[]) {
 
 	//run_tar1_avg = run_tar1_avg / nruns;
 	//run_tar2_avg = run_tar2_avg / nruns;
+	run_tar1_avg.col(0) = run_tar1_avg.col(0) / 2;
+	run_tar2_avg.col(0) = run_tar2_avg.col(0) / 2;
 	avg_late1 = avg_late1 / nruns;
 	avg_late2 = avg_late2 / nruns;
 	avg_ft_rate = avg_ft_rate / nruns;
 	std::cout << "avg late " << avg_late1 << "  " << avg_late2 << std::endl;
 	std::cout << "avg ft rate " << avg_ft_rate << std::endl;
+	
 	std::cout << run_tar1_avg << std::endl;
 	std::cout << run_tar2_avg << std::endl;
 	for (int ii = 0; ii < run_tar1_avg.n_rows - 1; ii++) {
-		if (run_tar1_avg(ii, 1) != 0 && run_tar1_avg(ii + 1, 1) != 0) {
-			cv::Point ppoint(run_tar1_avg(ii, 1), run_tar1_avg(ii, 2));
-			cv::Point cpoint(run_tar1_avg(ii + 1, 1), run_tar1_avg(ii + 1, 2));
-			cv::line(graph, ppoint, cpoint, cv::Scalar(0, 255, 0), 2);
+		if (ii >= avg_late1) {
+			if (run_tar1_avg(ii, 1) != 0 && run_tar1_avg(ii + 1, 1) != 0) {
+				cv::Point ppoint(run_tar1_avg(ii, 1), run_tar1_avg(ii, 2));
+				cv::Point cpoint(run_tar1_avg(ii + 1, 1), run_tar1_avg(ii + 1, 2));
+				cv::line(graph, ppoint, cpoint, cv::Scalar(0, 255, 0), 2);
+			}
 		}
+		
 	}
 	for (int ii = 0; ii < run_tar2_avg.n_rows - 1; ii++) {
-		if (run_tar2_avg(ii, 1) != 0 && run_tar2_avg(ii + 1, 1) != 0) {
-			cv::Point ppoint(run_tar2_avg(ii, 1), run_tar2_avg(ii, 2));
-			cv::Point cpoint(run_tar2_avg(ii + 1, 1), run_tar2_avg(ii + 1, 2));
-			cv::line(graph, ppoint, cpoint, cv::Scalar(0, 255, 0), 2);
+		if (ii >= avg_late2) {
+			if (run_tar2_avg(ii, 1) != 0 && run_tar2_avg(ii + 1, 1) != 0) {
+				cv::Point ppoint(run_tar2_avg(ii, 1), run_tar2_avg(ii, 2));
+				cv::Point cpoint(run_tar2_avg(ii + 1, 1), run_tar2_avg(ii + 1, 2));
+				cv::line(graph, ppoint, cpoint, cv::Scalar(0, 255, 0), 2);
+			}
 		}
+		
 	}
-	
 	cv::imshow("Output", frame);
 	cv::imshow("Output2", graph);
+	
 	cv::waitKey(0);
+
+	
 
 
 	//meas_data.save("meas.txt", arma::arma_ascii);
