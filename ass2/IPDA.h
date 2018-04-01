@@ -25,6 +25,11 @@ public:
 			arma::mat, arma::mat, arma::mat, int, double,
 			arma::mat &, arma::mat &,
 			int, double, arma::mat &);
+	void nn(arma::mat,
+		arma::mat::col_iterator,
+		arma::mat, arma::mat, arma::mat, int, double,
+		arma::mat &, arma::mat &,
+		int, double, arma::mat &);
 
 };
 

@@ -77,7 +77,6 @@ int main(int argc, char *argv[]) {
 	EKF ekf;
 
 	model kfmodel;
-	int nruns = 10;
 
 	runs result;
 	std::default_random_engine genp;
@@ -148,7 +147,8 @@ int main(int argc, char *argv[]) {
 			
 			arma::mat save_com;
 			//may need to clear hzk1k, sk1
-			ekf.kf(frame, k, st, radius, meas_data, P, phxk1k1, chxk1k1, hzk1k, sk1, t_id, fad, pd, q, save_com);
+
+			ekf.kf(frame, k, st, radius, meas_data, P, phxk1k1, chxk1k1, hzk1k, sk1, t_id, fad, pd, q, save_com, ipda_mode);
 			//std::cout << chxk1k1 << std::endl;
 			if (k >= initt2) {
 				//while (!GetAsyncKeyState(VK_SPACE)) {}
@@ -505,7 +505,7 @@ int main(int argc, char *argv[]) {
 			if (run_tar1_avg(ii, 1) != 0 && run_tar1_avg(ii + 1, 1) != 0) {
 				cv::Point ppoint(run_tar1_avg(ii, 1), run_tar1_avg(ii, 2));
 				cv::Point cpoint(run_tar1_avg(ii + 1, 1), run_tar1_avg(ii + 1, 2));
-				cv::line(graph, ppoint, cpoint, cv::Scalar(0, 255, 0), 2);
+				cv::line(graph, ppoint, cpoint, cv::Scalar(0, 255, 255), 2);
 			}
 		}
 		

@@ -24,3 +24,7 @@ int len2 = endt2 - initt2;
 double initvx2 = (dstx2 - initx2) / len2, initvy2 = (dsty2 - inity2) / len2;
 
 int lent = std::max(endt, endt2);
+
+int nruns = 1;
+
+bool ipda_mode = true;

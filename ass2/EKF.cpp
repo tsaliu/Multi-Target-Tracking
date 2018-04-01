@@ -8,7 +8,7 @@
 void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, arma::mat &P,
 	arma::mat &phxk1k1, arma::mat &chxk1k1, arma::mat &hzk1k, arma::mat &sk1,
 	arma::mat &t_id, double lambda, double pd,
-	arma::mat &q, arma::mat &out_save) {
+	arma::mat &q, arma::mat &out_save, bool ipda_mode) {
 	
 	ipda.getpara(lambda, pd);
 	//arma::mat asso_data;
@@ -21,8 +21,16 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 		<< 0 << 0 << init_pos_var << 0 << arma::endr
 		<< 0 << 0 << 0 << init_vel_var << arma::endr;
 	arma::mat R = arma::zeros(2, 2);
-	double init_a_var = 0.05;
-	double init_r_var = 0.5;
+	double init_a_var = 0;
+	double init_r_var = 0;
+	if (ipda_mode) {
+		init_a_var = 0.05;
+		init_r_var = 0.5;
+	}
+	else {
+		init_a_var = 0.1;
+		init_r_var = 5;
+	}
 	R << init_a_var << 0 << arma::endr
 		<< 0 << init_r_var << arma::endr;
 
@@ -96,7 +104,13 @@ void EKF::kf(cv::Mat &frame, int k, double st, int radi, arma::mat meas_data, ar
 		arma::mat save_com = arma::zeros(0, 7);
 		//if (k / st - 1 == start_all_frame_num) {
 			//std::cout << meas_data << std::endl;
+		if (ipda_mode) {
 			ipda.ipda(meas_data, cita, hz_store, id_store, sk_store, k, st, q, asso_data, radi, sigv, P);
+		}
+		else {
+			ipda.nn(meas_data, cita, hz_store, id_store, sk_store, k, st, q, asso_data, radi, sigv, P);
+		}
+			
 			
 			/*if (k == initt2) {
 				asso_data.resize(asso_data.n_rows + 1, 6);
