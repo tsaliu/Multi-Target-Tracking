@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 	cv::Mat initbg(bgwidth, bgheight, CV_8UC3, cv::Scalar(0, 0, 0));
 	cv::circle(initbg, center, radius, cv::Scalar(255, 255, 255), 1);
 	cv::putText(initbg, "R", Rat, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 2);
-	cv::namedWindow("Output", cv::WINDOW_AUTOSIZE);
+	//cv::namedWindow("Output", cv::WINDOW_AUTOSIZE);
 
 	GenTar target;
 	target.init_pos(initx, inity);
@@ -522,7 +522,7 @@ int main(int argc, char *argv[]) {
 	}
 	cv::imshow("Output", frame);
 	cv::imshow("Output2", graph);
-	
+	cv::imshow("Output3", frame);
 	cv::waitKey(0);
 
 	
